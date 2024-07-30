@@ -1,59 +1,72 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import {
+  NotoSerif_400Regular,
+  NotoSerif_400Regular_Italic,
+  NotoSerif_700Bold,
+  NotoSerif_700Bold_Italic,
+  useFonts,
+} from "@expo-google-fonts/noto-serif";
+import { useEffect, useState } from "react";
+import { Stack } from "expo-router";
+import LottieView from "lottie-react-native";
+import { View } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Onboarding from "./Onboarding";
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [sPlashAnimationFinished, setSPlashAnimationFinished] = useState(false);
+  const [fontsLoaded, fontError] = useFonts({
+    notoRegular: NotoSerif_400Regular,
+    notoItalic: NotoSerif_400Regular_Italic,
+    notoBold: NotoSerif_700Bold,
+    notoBoldItalic: NotoSerif_700Bold_Italic,
   });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
-    if (error) throw error;
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (fontsLoaded || fontError) {
+      setIsLoaded(true);
     }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
+  }, [fontsLoaded, fontError]);
+  const showAnimated = !isLoaded || !sPlashAnimationFinished;
+  if (showAnimated) {
+    return (
+      <Animation setSPlashAnimationFinished={setSPlashAnimationFinished} />
+    );
   }
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    // <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
+    //   <Stack />
+    // </Animated.View>
+    <Onboarding />
   );
 }
+
+const Animation = ({
+  setSPlashAnimationFinished = (isCanceled) => {},
+}: {
+  setSPlashAnimationFinished?: (isCanceled: boolean) => void;
+}) => {
+  return (
+    <Animated.View
+      exiting={FadeOut}
+      style={{ alignItems: "center", justifyContent: "center", flex: 1 }}
+    >
+      <LottieView
+        onAnimationFinish={(isCanceled) => {
+          console.log("Canceled", isCanceled);
+          if (!isCanceled) {
+            setSPlashAnimationFinished(true);
+          }
+        }}
+        autoPlay
+        loop={false}
+        style={{
+          width: "100%",
+          aspectRatio: 1,
+          backgroundColor: "#fff",
+        }}
+        source={require("../assets/fonts/lottie.json")}
+      />
+    </Animated.View>
+  );
+};
