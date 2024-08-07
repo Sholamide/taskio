@@ -1,8 +1,7 @@
 import React from "react";
-import { SafeAreaView, Text, TextInput, View } from "@/components/Themed";
+import { Link } from "expo-router";
 import {
   Alert,
-  Button,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -10,8 +9,14 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
+import {
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "@/components/Themed";
 import Colors from "@/constants/Colors";
-import { Link } from "expo-router";
 
 const SignInScreen = () => {
   return (
@@ -44,7 +49,7 @@ const SignInScreen = () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.loginWrapper}>
+            <View style={[styles.loginWrapper]}>
               <TextInput
                 lightColor={Colors.light.text}
                 darkColor={Colors.dark.text}
@@ -71,21 +76,24 @@ const SignInScreen = () => {
                   Forgot Password?
                 </Text>
               </Pressable>
-              <Link style={styles.signinwrapper} href={"(tabs)"}>
-                <Text
-                  lightColor={Colors.light.text}
-                  darkColor={Colors.dark.text}
-                  style={styles.signin}
-                >
-                  Sign In
-                </Text>
+
+              <Link
+                style={{
+                  marginTop: 30,
+                  justifyContent: "center",
+                  alignSelf: "center",
+                }}
+                href={"/(tabs)"}
+              >
+                <View style={styles.signinwrapper}>
+                  <Text style={styles.signin}> Sign in</Text>
+                </View>
               </Link>
             </View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
         <View style={styles.footer}>
           <Link href="/signup">
-            {" "}
             <Text>
               Don't have an account?,&nbsp;
               <Text
@@ -170,11 +178,11 @@ const styles = StyleSheet.create({
 
   signinwrapper: {
     backgroundColor: Colors.light.secondary,
-    marginTop: 20,
-    marginHorizontal: 10,
+    width: 350,
     padding: 15,
     borderRadius: 6,
-    textAlign: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   signin: {
