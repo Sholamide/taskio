@@ -11,6 +11,7 @@ import LottieView from "lottie-react-native";
 import { View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import Onboarding from "./Onboarding";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -34,10 +35,9 @@ export default function RootLayout() {
   }
 
   return (
-    // <Animated.View entering={FadeIn.duration(300)} style={{ flex: 1 }}>
-    //   <Stack />
-    // </Animated.View>
-    <Onboarding />
+  
+      <Onboarding />
+    
   );
 }
 
@@ -65,7 +65,7 @@ const Animation = ({
           aspectRatio: 1,
           backgroundColor: "#fff",
         }}
-        source={require("../assets/fonts/lottie.json")}
+        source={require("../assets/fonts/lottie-aiki.json")}
       />
     </Animated.View>
   );
