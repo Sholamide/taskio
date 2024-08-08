@@ -1,5 +1,5 @@
 import React from "react";
-import { SafeAreaView, Text, TextInput, View } from "@/components/Themed";
+import { SafeAreaView, Text, TextInput, View } from "../../components/Themed";
 import {
   Alert,
   Keyboard,
@@ -9,7 +9,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import Colors from "@/constants/Colors";
+import Colors from "../../constants/Colors";
 import { Link } from "expo-router";
 
 const SignUpScreen = () => {
