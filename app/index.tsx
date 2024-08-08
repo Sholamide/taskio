@@ -9,6 +9,7 @@ import Onboarding from "./onboarding";
 
 const App = () => {
   const [isFirstLaunch, setIsFirstLaunch] = useState<null | boolean>(null);
+
   useEffect(() => {
     async function checkFirstLaunch() {
       try {
@@ -23,17 +24,15 @@ const App = () => {
         console.error("Error storing data in AsyncStorage:", error);
       }
     }
-
     checkFirstLaunch();
   }, []);
 
-  {
-  }
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.light.white }}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Stack.Screen />
-        {isFirstLaunch ? <Onboarding /> : <HomeScreen />}
+        <Onboarding />
+        {/* {isFirstLaunch ? <Onboarding /> : <HomeScreen />} */}
       </GestureHandlerRootView>
     </SafeAreaView>
     // <>

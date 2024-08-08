@@ -88,6 +88,8 @@ const Onboarding = ({}) => {
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
+        <Stack screenOptions={{ headerShown: false }} />
+        
         <View style={styles.indicatorContainer}>
           {onboardingSteps.map((step: any, index: number) => (
             <View
@@ -96,14 +98,14 @@ const Onboarding = ({}) => {
                 styles.indicator,
                 {
                   backgroundColor:
-                    index == screenIndex ? colors.light.primary : "grey",
+                    index == screenIndex ? colors.light.button : "grey",
                 },
               ]}
             />
           ))}
         </View>
-        <Stack screenOptions={{ headerShown: false }} />
-        <GestureDetector gesture={swipes}>
+
+        {/* <GestureDetector gesture={swipes}>
           <View>
             <Animated.Image
               key={data.id}
@@ -119,14 +121,14 @@ const Onboarding = ({}) => {
               </Animated.Text>
             </View>
           </View>
-        </GestureDetector>
+        </GestureDetector> */}
 
-        <View style={styles.navigationContainer}>
+        {/* <View style={styles.navigationContainer}>
           <Text onPress={endOnboarding}>Skip</Text>
           <Pressable onPress={onContinue} style={styles.nextContainer}>
             <Entypo name="chevron-right" size={24} color={colors.light.white} />
           </Pressable>
-        </View>
+        </View> */}
       </SafeAreaView>
     </GestureHandlerRootView>
   );
@@ -137,9 +139,7 @@ export default Onboarding;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "space-around",
-    padding: 10,
+    // justifyContent: "center"
   },
   image: {
     width: 400,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   indicator: {
     backgroundColor: "gray",
     width: 100,
-    height:10,
+    height: 5,
     borderRadius: 10,
   },
   navigationContainer: {

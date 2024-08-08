@@ -12,7 +12,8 @@ export default {
     tint: tintColorLight,
     tabIconDefault: "#ccc",
     tabIconSelected: tintColorLight,
-    white:'#fff'
+    white:'#fff',
+    button:'#20B2AA'
   },
   dark: {
     text: "#fff",
