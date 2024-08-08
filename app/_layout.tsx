@@ -10,7 +10,7 @@ import { Stack } from "expo-router";
 import LottieView from "lottie-react-native";
 import { View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
-import Onboarding from "./Onboarding";
+import Onboarding from "./onboarding";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
@@ -53,7 +53,7 @@ const Animation = ({
     >
       <LottieView
         onAnimationFinish={(isCanceled) => {
-          console.log("Canceled", isCanceled);
+          // console.log("Canceled", isCanceled);
           if (!isCanceled) {
             setSPlashAnimationFinished(true);
           }

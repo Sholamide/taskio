@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Stack } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Onboarding from "./Onboarding";
 import HomeScreen from "./(tabs)/HomeScreen";
 import Colors from "@/constants/Colors";
+import Onboarding from "./onboarding";
 
 const App = () => {
   const [isFirstLaunch, setIsFirstLaunch] = useState<null | boolean>(null);
