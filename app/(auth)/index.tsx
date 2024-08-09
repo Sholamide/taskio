@@ -9,12 +9,7 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import {
-  SafeAreaView,
-  Text,
-  TextInput,
-  View,
-} from "@/components/Themed";
+import { SafeAreaView, Text, TextInput, View } from "@/components/Themed";
 import Colors from "@/constants/Colors";
 
 const SignInScreen = () => {
@@ -82,7 +77,7 @@ const SignInScreen = () => {
                   justifyContent: "center",
                   alignSelf: "center",
                 }}
-                href={"/(tabs)"}
+                href={"/(home)"}
               >
                 <View style={styles.signinwrapper}>
                   <Text style={styles.signin}> Sign in</Text>
