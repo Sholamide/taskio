@@ -10,8 +10,7 @@
 // Error Messages/Indicators: Crimson Red
 
 
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+const tintColor = '#2f95dc';
 
 export default {
   light: {
@@ -42,9 +41,9 @@ export default {
     input: "#121212",
 
     // others
-    tint: tintColorLight,
+    tint: tintColor,
     tabIconDefault: '#ccc',
-    tabIconSelected: tintColorLight,
+    tabIconSelected: tintColor,
   },
 
   dark: {
@@ -75,8 +74,8 @@ export default {
     input: "#E0E0E0",
 
     // others
-    tint: tintColorDark,
+    tint: tintColor,
     tabIconDefault: '#ccc',
-    tabIconSelected: tintColorDark,
+    tabIconSelected: tintColor,
   },
 };
