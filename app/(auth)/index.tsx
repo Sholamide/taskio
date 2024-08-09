@@ -13,7 +13,6 @@ import {
   SafeAreaView,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from "@/components/Themed";
 import Colors from "@/constants/Colors";
