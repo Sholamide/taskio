@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
