@@ -1,6 +1,12 @@
 import React from "react";
 import { Link, useRouter } from "expo-router";
-import { SafeAreaView, Text, TextInput, View } from "../../components/Themed";
+import {
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "../../components/Themed";
 import {
   Alert,
   Keyboard,
@@ -12,6 +18,7 @@ import {
 } from "react-native";
 import Colors from "../../constants/Colors";
 import { useSignIn } from "@clerk/clerk-expo";
+import { FontAwesome5 } from "@expo/vector-icons";
 
 const SignUpScreen = () => {
   const { signIn, setActive, isLoaded } = useSignIn();
@@ -74,6 +81,64 @@ const SignUpScreen = () => {
             Sign in to continue!
           </Text>
         </View>
+        <View style={{ alignItems: "center" }}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              marginVertical: 10,
+              gap: 50,
+            }}
+          >
+            <TouchableOpacity>
+              <FontAwesome5
+                name="facebook"
+                size={50}
+                color={Colors.light.secondary}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <FontAwesome5
+                name="google"
+                size={50}
+                color={Colors.light.secondary}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={{ alignItems: "center" }}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 10,
+              alignItems: "center",
+              marginVertical: 10,
+            }}
+          >
+            <View
+              style={{
+                borderWidth: StyleSheet.hairlineWidth,
+                width: "40%",
+                borderColor: "#5a5757",
+              }}
+            />
+            <Text
+              lightColor={Colors.light.primary}
+              darkColor={Colors.dark.primary}
+            >
+              or
+            </Text>
+            <View
+              style={{
+                borderWidth: StyleSheet.hairlineWidth,
+                width: "40%",
+                borderColor: "#5a5757",
+              }}
+            />
+          </View>
+        </View>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
@@ -132,7 +197,7 @@ const SignUpScreen = () => {
                     textAlign: "center",
                     marginTop: 10,
                     fontSize: 16,
-                    fontWeight:'400'
+                    fontWeight: "400",
                   }}
                 >
                   {signinErrorMessage}
@@ -185,7 +250,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
   introWrapper: {
-    paddingVertical: 60,
+    paddingVertical: 10,
     paddingHorizontal: 30,
     justifyContent: "center",
     alignItems: "center",
