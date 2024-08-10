@@ -1,5 +1,7 @@
 import React from "react";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import {
   SafeAreaView,
   Text,
@@ -17,10 +19,27 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import Colors from "../../constants/Colors";
-import { useSignIn } from "@clerk/clerk-expo";
+import { useOAuth, useSignIn } from "@clerk/clerk-expo";
 import { FontAwesome5 } from "@expo/vector-icons";
 
-const SignUpScreen = () => {
+
+
+const useWarmUpBrowser = () => {
+  React.useEffect(() => {
+    // Warm up the android browser to improve UX
+    // https://docs.expo.dev/guides/authentication/#improving-user-experience
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
+};
+
+
+const SignInScreen = () => {
+
+  useWarmUpBrowser();
+
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
 
@@ -28,6 +47,25 @@ const SignUpScreen = () => {
   const [password, setPassword] = React.useState("");
   const [signinError, setSigninError] = React.useState(false);
   const [signinErrorMessage, setSigninErrorMessage] = React.useState("");
+
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+
+  const handleOAuth = React.useCallback(async () => {
+    try {
+      const { createdSessionId, signIn, signUp, setActive } =
+        await startOAuthFlow({
+          redirectUrl: Linking.createURL("/dashboard", { scheme: "myapp" }),
+        });
+
+      if (createdSessionId) {
+        setActive!({ session: createdSessionId });
+      } else {
+        // Use signIn or signUp for next steps such as MFA
+      }
+    } catch (err) {
+      console.error("OAuth error", err);
+    }
+  }, []);
 
   const onSignInPress = React.useCallback(async () => {
     if (!isLoaded) {
@@ -91,14 +129,14 @@ const SignUpScreen = () => {
               gap: 50,
             }}
           >
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <FontAwesome5
                 name="facebook"
                 size={50}
                 color={Colors.light.secondary}
               />
-            </TouchableOpacity>
-            <TouchableOpacity>
+            </TouchableOpacity> */}
+            <TouchableOpacity onPress={handleOAuth}>
               <FontAwesome5
                 name="google"
                 size={50}
@@ -228,7 +266,7 @@ const SignUpScreen = () => {
   );
 };
 
-export default SignUpScreen;
+export default SignInScreen;
 
 const styles = StyleSheet.create({
   container: {
