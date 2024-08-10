@@ -85,7 +85,7 @@ export default function OnboardingScreen() {
 
   //check if it's first launch, if not, redirect to auth group
   if (!isFirstLaunch) {
-    return <Redirect href="/(auth)" />;
+    return <Redirect href="/(home)/" />;
   }
 
   //onboarding screen

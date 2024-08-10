@@ -1,31 +1,42 @@
-import { StyleSheet } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 
-import EditScreenInfo from "@/components/EditScreenInfo";
-import { Text, useThemeColor, View } from "@/components/Themed";
-import { Stack } from "expo-router";
+import { Text, View } from "@/components/Themed";
+import { Link, Stack } from "expo-router";
+import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
 import Colors from "@/constants/Colors";
 
 export default function TabOneScreen() {
-  const backgroundColor = useThemeColor(
-    { light: Colors.light.background, dark: Colors.dark.background },
-    "background"
-  );
+  const { user } = useUser();
+  const { signOut } = useAuth();
 
   return (
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          headerShown:false,
+          headerShown: false,
         }}
       />
-      <Text style={styles.title}>Home Screen</Text>
-      {/* <Text style={styles.title}>Tab One</Text>
-      <View
-        style={styles.separator}
-        lightColor="#eee"
-        darkColor="rgba(255,255,255,0.1)"
-      />
-      <EditScreenInfo path="app/(tabs)/index.tsx" /> */}
+      <View>
+        <SignedIn>
+          <Text style={styles.title}>
+            You are logged in as {user?.emailAddresses[0].emailAddress}
+          </Text>
+          <Pressable
+            style={{backgroundColor:Colors.light.secondary, marginVertical:10, borderRadius:8, padding:10}}
+            onPress={() => signOut({ redirectUrl: "/(auth)sign-up" })}
+          >
+            <Text style={{textAlign:'center'}}>sign out</Text>
+          </Pressable>
+        </SignedIn>
+        <SignedOut>
+          <Link href={"/(auth)/sign-in"}>
+            <Text>Sign In</Text>
+          </Link>
+          <Link href={"/(auth)/sign-up"}>
+            <Text>Sign Up</Text>
+          </Link>
+        </SignedOut>
+      </View>
     </View>
   );
 }
@@ -33,10 +44,10 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop:40,
-    paddingHorizontal:15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingTop: 40,
+    paddingHorizontal: 15,
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 20,

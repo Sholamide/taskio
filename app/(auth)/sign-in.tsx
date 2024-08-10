@@ -1,5 +1,6 @@
 import React from "react";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
+import { SafeAreaView, Text, TextInput, View } from "../../components/Themed";
 import {
   Alert,
   Keyboard,
@@ -9,10 +10,44 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import { SafeAreaView, Text, TextInput, View } from "@/components/Themed";
-import Colors from "@/constants/Colors";
+import Colors from "../../constants/Colors";
+import { useSignIn } from "@clerk/clerk-expo";
 
-const SignInScreen = () => {
+const SignUpScreen = () => {
+  const { signIn, setActive, isLoaded } = useSignIn();
+  const router = useRouter();
+
+  const [emailAddress, setEmailAddress] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [signinError, setSigninError] = React.useState(false);
+  const [signinErrorMessage, setSigninErrorMessage] = React.useState("");
+
+  const onSignInPress = React.useCallback(async () => {
+    if (!isLoaded) {
+      return;
+    }
+
+    try {
+      const signInAttempt = await signIn.create({
+        identifier: emailAddress,
+        password,
+      });
+
+      if (signInAttempt.status === "complete") {
+        await setActive({ session: signInAttempt.createdSessionId });
+        router.replace("/");
+      } else {
+        // See https://clerk.com/docs/custom-flows/error-handling
+        // for more info on error handling
+        console.error("attempt error", JSON.stringify(signInAttempt, null, 2));
+      }
+    } catch (err: any) {
+      setSigninError(true);
+      setSigninErrorMessage(err.errors[0].message);
+      // console.error("sign in error", JSON.stringify(err, null, 2));
+    }
+  }, [isLoaded, emailAddress, password]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.wrapper}>
@@ -45,16 +80,22 @@ const SignInScreen = () => {
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={[styles.loginWrapper]}>
               <TextInput
+                value={emailAddress}
+                autoCapitalize="none"
                 lightColor={Colors.light.text}
                 darkColor={Colors.dark.text}
-                placeholder="Email"
+                placeholder="Email..."
                 style={styles.input}
+                onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
               />
               <TextInput
+                value={password}
                 lightColor={Colors.light.text}
                 darkColor={Colors.dark.text}
-                placeholder="Password"
+                placeholder="Password..."
                 style={styles.input}
+                secureTextEntry={true}
+                onChangeText={(password) => setPassword(password)}
               />
               <Pressable
                 onPress={() => {
@@ -71,23 +112,41 @@ const SignInScreen = () => {
                 </Text>
               </Pressable>
 
-              <Link
+              <Pressable
+                onPress={onSignInPress}
                 style={{
                   marginTop: 30,
                   justifyContent: "center",
                   alignSelf: "center",
                 }}
-                href={"/(home)"}
               >
                 <View style={styles.signinwrapper}>
                   <Text style={styles.signin}> Sign in</Text>
                 </View>
-              </Link>
+              </Pressable>
+              {signinError && (
+                <Text
+                  lightColor={Colors.light.crimsonRed}
+                  darkColor={Colors.dark.crimsonRed}
+                  style={{
+                    textAlign: "center",
+                    marginTop: 10,
+                    fontSize: 16,
+                    fontWeight:'400'
+                  }}
+                >
+                  {signinErrorMessage}
+                </Text>
+              )}
             </View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
         <View style={styles.footer}>
-          <Link href="/signup">
+          <Pressable
+            onPress={() => {
+              router.push("/(auth)/sign-up");
+            }}
+          >
             <Text>
               Don't have an account?,&nbsp;
               <Text
@@ -97,18 +156,19 @@ const SignInScreen = () => {
                 Sign up!
               </Text>
             </Text>
-          </Link>
+          </Pressable>
         </View>
       </View>
     </SafeAreaView>
   );
 };
 
-export default SignInScreen;
+export default SignUpScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
   },
 
   wrapper: {
@@ -180,7 +240,7 @@ const styles = StyleSheet.create({
   },
 
   signin: {
-    fontSize: 14,
+    fontSize: 16,
   },
 
   footer: {
