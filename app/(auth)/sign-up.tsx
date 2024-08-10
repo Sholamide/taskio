@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -8,11 +10,33 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import { SafeAreaView, Text, TextInput, View } from "@/components/Themed";
+import {
+  SafeAreaView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "@/components/Themed";
 import Colors from "@/constants/Colors";
-import { useSignUp } from "@clerk/clerk-expo";
+import { useOAuth, useSignUp } from "@clerk/clerk-expo";
+import { FontAwesome5 } from "@expo/vector-icons";
 
-const SignUpScreen = () => {
+const useWarmUpBrowser = () => {
+  React.useEffect(() => {
+    // Warm up the android browser to improve UX
+    // https://docs.expo.dev/guides/authentication/#improving-user-experience
+    void WebBrowser.warmUpAsync();
+    return () => {
+      void WebBrowser.coolDownAsync();
+    };
+  }, []);
+};
+
+WebBrowser.maybeCompleteAuthSession();
+
+export default function SignUpScreen() {
+  useWarmUpBrowser();
+
   const { isLoaded, signUp, setActive } = useSignUp();
 
   const router = useRouter();
@@ -23,12 +47,29 @@ const SignUpScreen = () => {
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [code, setCode] = React.useState("");
-
   const [signinError, setSigninError] = React.useState(false);
   const [signinErrorMessage, setSigninErrorMessage] = React.useState("");
+
+  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+
+  const handleOAuth = React.useCallback(async () => {
+    try {
+      const { createdSessionId, signIn, signUp, setActive } =
+        await startOAuthFlow({
+          redirectUrl: Linking.createURL("/dashboard", { scheme: "myapp" }),
+        });
+
+      if (createdSessionId) {
+        setActive!({ session: createdSessionId });
+      } else {
+        // Use signIn or signUp for next steps such as MFA
+      }
+    } catch (err) {
+      console.error("OAuth error", err);
+    }
+  }, []);
 
   const onSignUpPress = async () => {
     if (!isLoaded) {
@@ -108,12 +149,69 @@ const SignUpScreen = () => {
               Sign up to get started
             </Text>
           </View>
+          <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: 20,
+                gap: 50,
+              }}
+            >
+              {/* <TouchableOpacity onPress={handleOAuth}>
+                <FontAwesome5
+                  name="facebook"
+                  size={50}
+                  color={Colors.light.secondary}
+                />
+              </TouchableOpacity> */}
+              <TouchableOpacity onPress={handleOAuth}>
+                <FontAwesome5
+                  name="google"
+                  size={50}
+                  color={Colors.light.secondary}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <View style={{ alignItems: "center" }}>
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 10,
+                alignItems: "center",
+                marginVertical: 20,
+              }}
+            >
+              <View
+                style={{
+                  borderWidth: StyleSheet.hairlineWidth,
+                  width: "40%",
+                  borderColor: "#5a5757",
+                }}
+              />
+              <Text
+                lightColor={Colors.light.primary}
+                darkColor={Colors.dark.primary}
+              >
+                or
+              </Text>
+              <View
+                style={{
+                  borderWidth: StyleSheet.hairlineWidth,
+                  width: "40%",
+                  borderColor: "#5a5757",
+                }}
+              />
+            </View>
+          </View>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
               <View style={styles.signupWrapper}>
-
                 {/* username */}
                 <TextInput
                   autoCapitalize="none"
@@ -208,7 +306,8 @@ const SignUpScreen = () => {
                     {signinErrorMessage}
                   </Text>
                 )}
-                <View style={{ alignItems: "center", marginTop: 12 }}>
+
+                <View style={{ alignItems: "center", marginTop: 30 }}>
                   <Pressable
                     onPress={() => {
                       router.push("/(auth)/sign-in");
@@ -247,9 +346,7 @@ const SignUpScreen = () => {
       )}
     </SafeAreaView>
   );
-};
-
-export default SignUpScreen;
+}
 
 const styles = StyleSheet.create({
   container: {
