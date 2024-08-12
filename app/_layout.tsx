@@ -34,7 +34,20 @@ export default function RootLayout() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [sPlashAnimationFinished, setSPlashAnimationFinished] = useState(false);
   const [loaded, error] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    spacemono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    latoblack: require("../assets/fonts/lato/Lato-Black.ttf"),
+    latobold: require("../assets/fonts/lato/Lato-Bold.ttf"),
+    latoregular: require("../assets/fonts/lato/Lato-Regular.ttf"),
+    poppinsblack: require("../assets/fonts/poppins/Poppins-Black.ttf"),
+    poppinsextrabold: require("../assets/fonts/poppins/Poppins-ExtraBold.ttf"),
+    poppinsbold: require("../assets/fonts/poppins/Poppins-Bold.ttf"),
+    poppinsmedium: require("../assets/fonts/poppins/Poppins-Medium.ttf"),
+    poppinsregular: require("../assets/fonts/poppins/Poppins-Regular.ttf"),
+    robotoblack: require("../assets/fonts/roboto/Roboto-Black.ttf"),
+    robotobold: require("../assets/fonts/roboto/Roboto-Bold.ttf"),
+    robotomedium: require("../assets/fonts/roboto/Roboto-Medium.ttf"),
+    robotoregular: require("../assets/fonts/roboto/Roboto-Regular.ttf"),
+    robotothin: require("../assets/fonts/roboto/Roboto-Thin.ttf"),
     ...FontAwesome.font,
   });
 
