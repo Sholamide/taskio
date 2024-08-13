@@ -119,6 +119,7 @@ export default function SignUpScreen() {
       if (completeSignUp.status === "complete") {
         await setActive({ session: completeSignUp.createdSessionId });
         router.replace("/(home)/");
+        
       } else {
         console.error(JSON.stringify(completeSignUp, null, 2));
       }
@@ -310,7 +311,7 @@ export default function SignUpScreen() {
                 <View style={{ alignItems: "center", marginTop: 30 }}>
                   <Pressable
                     onPress={() => {
-                      router.push("/(auth)/sign-in");
+                      router.push("/(auth)");
                     }}
                   >
                     <Text>

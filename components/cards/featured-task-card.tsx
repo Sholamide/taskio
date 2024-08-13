@@ -1,13 +1,13 @@
-import { getCategoryTheme } from "@/actions";
 import { View, Text, StyleSheet, Image } from "react-native";
 import { TouchableOpacity } from "../Themed";
+import { getCategoryTheme } from "@/actions/categories/get-category-theme";
 
 export default function FeaturedTaskCard({ task }: { task: featuredTasks }) {
   return (
     <TouchableOpacity style={styles.cardcontainer}>
       <View
         style={[
-          { backgroundColor: getCategoryTheme(task.categoryId) },
+          { backgroundColor: getCategoryTheme(task.categoryName) },
           styles.card,
         ]}
       >

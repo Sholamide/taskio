@@ -1,15 +1,19 @@
 type featuredTasks = {
     id: string,
-    categoryId: string,
+    categoryName: string,
     name: string,
     description: string,
     userImageURL: string
 }
 
 type taskCategory = {
-    id: string,
     name: string,
     description: string,
-    defaultURL: string,
+    defaultImageUrl: string,
     themeColor: string
+}
+
+type User = {
+    clerkUserId: string,
+    email: string
 }
