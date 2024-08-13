@@ -4,20 +4,102 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Touchable,
 } from "react-native";
 
-import { Text, View } from "@/components/Themed";
+import { Text, TouchableOpacity, View } from "@/components/Themed";
 import { Link, Stack } from "expo-router";
-import { SignedIn, SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
-import Colors from "@/constants/Colors";
-import { FontAwesome5 } from "@expo/vector-icons";
-import { mockFeaturedTasks } from "@/constants";
+import { SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
 import FeaturedTaskCard from "@/components/cards/featured-task-card";
 import SuggestionCard from "@/components/cards/suggestions-card";
+import React, { useEffect } from "react";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+} from "firebase/firestore";
+import { db } from "@/config/firebase/firebase-config";
+import getTaskCategories from "@/actions/categories/get-task-categories";
+import CategoriesCard from "@/components/cards/task-categories-card";
+import useStore from "@/store/store";
+import Colors from "@/constants/Colors";
+import { FontAwesome5 } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const { user } = useUser();
+  const {
+    activeUser,
+    categories,
+    setCategories,
+    featuredtasks,
+    setFeaturedTasks,
+    setActiveUser,
+  } = useStore();
+  const [userData, setUserData] = React.useState<any>(null);
+
   const { signOut } = useAuth();
+
+  useEffect(() => {
+    getTaskCategories();
+    getFeaturedTasks();
+    if (user) {
+      handleUser();
+    }
+  }, [user]);
+
+  const getTaskCategories = async () => {
+    const taskCategories: any = [];
+
+    const categoriesSnap = await getDocs(collection(db, "categories"));
+
+    categoriesSnap.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      taskCategories.push(doc.data());
+    });
+
+    setCategories(taskCategories);
+  };
+
+  const getFeaturedTasks = async () => {
+    const allFeaturedTask: any = [];
+
+    const featuredTasksSnap = await getDocs(collection(db, "featuredtasks"));
+
+    featuredTasksSnap.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      allFeaturedTask.push(doc.data());
+    });
+
+    setFeaturedTasks(allFeaturedTask);
+  };
+
+  const handleUser = async () => {
+    if (user) {
+      try {
+        const userRef = doc(db, "users", user.id);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          setUserData(userSnap.data() as any);
+          console.log("Existing user data fetched");
+        } else {
+          // User doesn't exist, create new user
+          const newUserData = {
+            clerkUserId: user.id,
+            email: user.emailAddresses[0]?.emailAddress ?? "",
+          };
+          await setDoc(userRef, newUserData);
+          setActiveUser(newUserData);
+          console.log("New user created in Firebase");
+        }
+      } catch (error) {
+        console.error("Error managing user in Firebase:", error);
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -34,43 +116,113 @@ export default function HomeScreen() {
               Task smarter, not harder ✨
             </Text>
           </View>
-          <View>
+          <TouchableOpacity onPress={() => {}}>
             <Image
               style={{ width: 40, height: 40, borderRadius: 50 }}
               src={user?.imageUrl}
             />
-          </View>
+          </TouchableOpacity>
         </View>
         <View style={styles.featured}>
           <Text style={{ fontFamily: "poppinsbold" }}>Featured Tasks</Text>
           <FlatList
             showsHorizontalScrollIndicator={false}
             horizontal
-            data={mockFeaturedTasks}
+            data={featuredtasks}
             renderItem={({ item }) => <FeaturedTaskCard task={item} />}
             keyExtractor={(task) => task.id}
           />
         </View>
         <View style={styles.featured}>
-          <Text style={{ fontFamily: "poppinsbold" }}>Suggestions for you</Text>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontFamily: "poppinsbold" }}>Categories</Text>
+            <TouchableOpacity style={{}}>
+              <Text style={{ fontSize: 10 }}>View All</Text>
+            </TouchableOpacity>
+          </View>
           <FlatList
             showsHorizontalScrollIndicator={false}
             horizontal
-            data={mockFeaturedTasks}
-            renderItem={({ item }) => <SuggestionCard task={item} />}
-            keyExtractor={(task) => task.id}
+            data={categories}
+            renderItem={({ item }) => <CategoriesCard category={item} />}
           />
         </View>
-        <View style={styles.featured}>
-          <Text style={{ fontFamily: "poppinsbold" }}>Categories</Text>
-          <FlatList
-            showsHorizontalScrollIndicator={false}
-            horizontal
-            data={mockFeaturedTasks}
-            renderItem={({ item }) => <SuggestionCard task={item} />}
-            keyExtractor={(task) => task.id}
-          />
+        <View
+          style={{
+            borderRadius: 17,
+            borderColor: Colors.light.lightGray,
+            borderWidth: StyleSheet.hairlineWidth,
+            marginTop: 20,
+            padding: 15,
+          }}
+        >
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ fontSize: 14, fontFamily: "poppinsblack" }}>
+              My tasks
+            </Text>
+            <TouchableOpacity
+              style={{
+                borderColor: Colors.light.lightGray,
+                borderWidth: StyleSheet.hairlineWidth,
+                paddingVertical: 5,
+                paddingHorizontal: 12,
+                borderRadius: 20,
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <Text style={{ fontSize: 10, fontFamily: "poppinsregular" }}>
+                Due Soon
+              </Text>
+              <FontAwesome5
+                name="chevron-down"
+                size={12}
+                color={Colors.light.lightGray}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={{ marginTop: 10 }}></View>
+          <View style={{ marginTop: "auto" }}>
+            <TouchableOpacity
+              style={{
+                borderRadius: 50,
+                borderColor: Colors.light.lightGray,
+                borderWidth: StyleSheet.hairlineWidth,
+                marginTop: 20,
+                padding: 10,
+              }}
+            >
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontFamily: "poppinsmedium",
+                  fontSize: 12,
+                }}
+              >
+                Go to My Tasks
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* <Text style={{ color: "#fff", marginTop: 12 }}>{user?.id}</Text> */}
+        {/* <View style={{ backgroundColor: "#fff" }}></View> */}
         {/* <SignedIn>
           <Text style={styles.title}>
             You are logged in as {user?.emailAddresses[0].emailAddress}
@@ -101,8 +253,19 @@ export default function HomeScreen() {
         >
           <Text style={{ textAlign: "center" }}>sign out</Text>
         </Pressable> */}
+        <Pressable
+            style={{
+              backgroundColor: Colors.light.secondary,
+              marginTop: 70,
+              borderRadius: 8,
+              padding: 10,
+            }}
+            onPress={() => signOut({ redirectUrl: "/(auth)sign-up" })}
+          >
+            <Text style={{ textAlign: "center" }}>sign out</Text>
+          </Pressable>
         <SignedOut>
-          <Link href={"/(auth)/sign-in"}>
+          <Link href={"/(auth)/"}>
             <Text>Sign In</Text>
           </Link>
           <Link href={"/(auth)/sign-up"}>

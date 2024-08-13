@@ -21,7 +21,7 @@ export default function TabLayout() {
   const { isSignedIn } = useAuth();
 
   if (!isSignedIn) {
-    return <Redirect href="/(auth)/sign-up" />;
+    return <Redirect href="/(auth)" />;
   }
 
   return (
@@ -61,10 +61,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="inbox"
         options={{
-          title: "Chat",
-          tabBarIcon: ({ color }) => <TabBarIcon name="wechat" color={color} />,
+          title: "Inbox",
+          tabBarIcon: ({ color }) => <TabBarIcon name="bell" color={color} />,
         }}
       />
       <Tabs.Screen

@@ -4,7 +4,7 @@ import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 import { Stack } from 'expo-router';
 
-export default function TabFourScreen() {
+export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <Stack.Screen
