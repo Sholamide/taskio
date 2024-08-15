@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -41,8 +42,7 @@ export default function SignUpScreen() {
 
   const router = useRouter();
 
-  const [firstName, setFirstName] = React.useState("");
-  const [lastName, setLastName] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
   const [username, setUsername] = React.useState("");
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -72,12 +72,15 @@ export default function SignUpScreen() {
   }, []);
 
   const onSignUpPress = async () => {
+    setLoading(true);
     if (!isLoaded) {
+      setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
       setSigninErrorMessage("Passwords do not match");
+      setLoading(false);
       return;
     }
 
@@ -92,13 +95,14 @@ export default function SignUpScreen() {
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
+      setLoading(false);
     } catch (err: any) {
       setSigninError(true);
+      setLoading(false);
       if (err.errors.length > 1) {
         setSigninErrorMessage("missing fields required");
       }
       setSigninErrorMessage(err.errors[0].message);
-
       // setSigninErrorMessage(err.errors[0].message);
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
@@ -107,7 +111,9 @@ export default function SignUpScreen() {
   };
 
   const onPressVerify = async () => {
+    setLoading(true);
     if (!isLoaded) {
+      setLoading(false);
       return;
     }
 
@@ -119,11 +125,13 @@ export default function SignUpScreen() {
       if (completeSignUp.status === "complete") {
         await setActive({ session: completeSignUp.createdSessionId });
         router.replace("/(home)/");
-        
+        setLoading(false);
       } else {
         console.error(JSON.stringify(completeSignUp, null, 2));
+        setLoading(false);
       }
     } catch (err: any) {
+      setLoading(false);
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
       console.error(JSON.stringify(err.errors.message, null, 2));
@@ -282,7 +290,14 @@ export default function SignUpScreen() {
                   }
                 />
                 <Pressable
-                  style={styles.signupButtonWrapper}
+                  style={[
+                    {
+                      backgroundColor: loading
+                        ? "#963c34"
+                        : Colors.light.secondary,
+                    },
+                    styles.signupButtonWrapper,
+                  ]}
                   onPress={onSignUpPress}
                 >
                   <Text
@@ -292,6 +307,7 @@ export default function SignUpScreen() {
                   >
                     Sign Up
                   </Text>
+                  {loading && <ActivityIndicator />}
                 </Pressable>
                 {signinError && (
                   <Text
@@ -387,7 +403,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   signupButtonWrapper: {
-    backgroundColor: Colors.light.secondary,
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
     marginTop: 20,
     marginHorizontal: 10,
     padding: 15,

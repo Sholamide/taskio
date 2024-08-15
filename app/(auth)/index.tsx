@@ -10,6 +10,7 @@ import {
   View,
 } from "../../components/Themed";
 import {
+  ActivityIndicator,
   Alert,
   Keyboard,
   KeyboardAvoidingView,
@@ -22,8 +23,6 @@ import Colors from "../../constants/Colors";
 import { useOAuth, useSignIn } from "@clerk/clerk-expo";
 import { FontAwesome5 } from "@expo/vector-icons";
 
-
-
 const useWarmUpBrowser = () => {
   React.useEffect(() => {
     // Warm up the android browser to improve UX
@@ -35,14 +34,13 @@ const useWarmUpBrowser = () => {
   }, []);
 };
 
-
 const SignInScreen = () => {
-
   useWarmUpBrowser();
 
   const { signIn, setActive, isLoaded } = useSignIn();
   const router = useRouter();
 
+  const [loading, setLoading] = React.useState(false);
   const [emailAddress, setEmailAddress] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [signinError, setSigninError] = React.useState(false);
@@ -68,6 +66,7 @@ const SignInScreen = () => {
   }, []);
 
   const onSignInPress = React.useCallback(async () => {
+    setLoading(true);
     if (!isLoaded) {
       return;
     }
@@ -81,15 +80,18 @@ const SignInScreen = () => {
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
         router.replace("/");
+        setLoading(false);
       } else {
         // See https://clerk.com/docs/custom-flows/error-handling
         // for more info on error handling
         console.error("attempt error", JSON.stringify(signInAttempt, null, 2));
+        setLoading(false);
       }
     } catch (err: any) {
       setSigninError(true);
       setSigninErrorMessage(err.errors[0].message);
       // console.error("sign in error", JSON.stringify(err, null, 2));
+      setLoading(false);
     }
   }, [isLoaded, emailAddress, password]);
 
@@ -129,13 +131,6 @@ const SignInScreen = () => {
               gap: 50,
             }}
           >
-            {/* <TouchableOpacity>
-              <FontAwesome5
-                name="facebook"
-                size={50}
-                color={Colors.light.secondary}
-              />
-            </TouchableOpacity> */}
             <TouchableOpacity onPress={handleOAuth}>
               <FontAwesome5
                 name="google"
@@ -216,16 +211,19 @@ const SignInScreen = () => {
               </Pressable>
 
               <Pressable
+                disabled={loading}
                 onPress={onSignInPress}
-                style={{
-                  marginTop: 30,
-                  justifyContent: "center",
-                  alignSelf: "center",
-                }}
+                style={[
+                  {
+                    backgroundColor: loading
+                      ? "#963c34"
+                      : Colors.light.secondary,
+                  },
+                  styles.signinwrapper,
+                ]}
               >
-                <View style={styles.signinwrapper}>
-                  <Text style={styles.signin}> Sign in</Text>
-                </View>
+                <Text style={styles.signin}> Sign in</Text>
+                {loading && <ActivityIndicator />}
               </Pressable>
               {signinError && (
                 <Text
@@ -334,12 +332,16 @@ const styles = StyleSheet.create({
   },
 
   signinwrapper: {
-    backgroundColor: Colors.light.secondary,
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 30,
     width: 350,
     padding: 15,
     borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
+    alignSelf: "center",
   },
 
   signin: {

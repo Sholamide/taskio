@@ -8,39 +8,27 @@ import {
 } from "react-native";
 
 import { Text, TouchableOpacity, View } from "@/components/Themed";
-import { Link, Stack } from "expo-router";
-import { SignedOut, useAuth, useUser } from "@clerk/clerk-expo";
+import { Link, Stack, useRouter } from "expo-router";
+import { SignedOut, useUser } from "@clerk/clerk-expo";
 import FeaturedTaskCard from "@/components/cards/featured-task-card";
-import SuggestionCard from "@/components/cards/suggestions-card";
 import React, { useEffect } from "react";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-} from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/config/firebase/firebase-config";
-import getTaskCategories from "@/actions/categories/get-task-categories";
 import CategoriesCard from "@/components/cards/task-categories-card";
 import useStore from "@/store/store";
 import Colors from "@/constants/Colors";
 import { FontAwesome5 } from "@expo/vector-icons";
 
 export default function HomeScreen() {
+  const router = useRouter();
   const { user } = useUser();
   const {
-    activeUser,
     categories,
     setCategories,
     featuredtasks,
     setFeaturedTasks,
     setActiveUser,
   } = useStore();
-  const [userData, setUserData] = React.useState<any>(null);
-
-  const { signOut } = useAuth();
 
   useEffect(() => {
     getTaskCategories();
@@ -83,7 +71,7 @@ export default function HomeScreen() {
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          setUserData(userSnap.data() as any);
+          setActiveUser(userSnap.data() as any);
           console.log("Existing user data fetched");
         } else {
           // User doesn't exist, create new user
@@ -116,15 +104,12 @@ export default function HomeScreen() {
               Task smarter, not harder ✨
             </Text>
           </View>
-          <TouchableOpacity onPress={() => {}}>
-            <Image
-              style={{ width: 40, height: 40, borderRadius: 50 }}
-              src={user?.imageUrl}
-            />
+          <TouchableOpacity onPress={() => router.push("/(home)/account")}>
+            <Image style={styles.image} src={user?.imageUrl} />
           </TouchableOpacity>
         </View>
-        <View style={styles.featured}>
-          <Text style={{ fontFamily: "poppinsbold" }}>Featured Tasks</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.title}>Featured Tasks</Text>
           <FlatList
             showsHorizontalScrollIndicator={false}
             horizontal
@@ -133,18 +118,11 @@ export default function HomeScreen() {
             keyExtractor={(task) => task.id}
           />
         </View>
-        <View style={styles.featured}>
-          <View
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ fontFamily: "poppinsbold" }}>Categories</Text>
-            <TouchableOpacity style={{}}>
-              <Text style={{ fontSize: 10 }}>View All</Text>
+        <View style={styles.sectionHeader}>
+          <View style={styles.categoryHeader}>
+            <Text style={styles.title}>Categories</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewall}>View All</Text>
             </TouchableOpacity>
           </View>
           <FlatList
@@ -154,42 +132,11 @@ export default function HomeScreen() {
             renderItem={({ item }) => <CategoriesCard category={item} />}
           />
         </View>
-        <View
-          style={{
-            borderRadius: 17,
-            borderColor: Colors.light.lightGray,
-            borderWidth: StyleSheet.hairlineWidth,
-            marginTop: 20,
-            padding: 15,
-          }}
-        >
-          <View
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text style={{ fontSize: 14, fontFamily: "poppinsblack" }}>
-              My tasks
-            </Text>
-            <TouchableOpacity
-              style={{
-                borderColor: Colors.light.lightGray,
-                borderWidth: StyleSheet.hairlineWidth,
-                paddingVertical: 5,
-                paddingHorizontal: 12,
-                borderRadius: 20,
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 5,
-              }}
-            >
-              <Text style={{ fontSize: 10, fontFamily: "poppinsregular" }}>
-                Due Soon
-              </Text>
+        <View style={styles.tasksContainer}>
+          <View style={styles.tasksHeader}>
+            <Text style={styles.mytasks}>My tasks</Text>
+            <TouchableOpacity style={styles.duesooncontainer}>
+              <Text style={styles.duesoon}>Due Soon</Text>
               <FontAwesome5
                 name="chevron-down"
                 size={12}
@@ -199,24 +146,8 @@ export default function HomeScreen() {
           </View>
           <View style={{ marginTop: 10 }}></View>
           <View style={{ marginTop: "auto" }}>
-            <TouchableOpacity
-              style={{
-                borderRadius: 50,
-                borderColor: Colors.light.lightGray,
-                borderWidth: StyleSheet.hairlineWidth,
-                marginTop: 20,
-                padding: 10,
-              }}
-            >
-              <Text
-                style={{
-                  textAlign: "center",
-                  fontFamily: "poppinsmedium",
-                  fontSize: 12,
-                }}
-              >
-                Go to My Tasks
-              </Text>
+            <TouchableOpacity onPress={()=>router.push("/(home)/task")} style={styles.gotomytaskscontainer}>
+              <Text style={styles.gotomytask}>Go to My Tasks</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -253,17 +184,6 @@ export default function HomeScreen() {
         >
           <Text style={{ textAlign: "center" }}>sign out</Text>
         </Pressable> */}
-        <Pressable
-            style={{
-              backgroundColor: Colors.light.secondary,
-              marginTop: 70,
-              borderRadius: 8,
-              padding: 10,
-            }}
-            onPress={() => signOut({ redirectUrl: "/(auth)sign-up" })}
-          >
-            <Text style={{ textAlign: "center" }}>sign out</Text>
-          </Pressable>
         <SignedOut>
           <Link href={"/(auth)/"}>
             <Text>Sign In</Text>
@@ -280,7 +200,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
+    paddingTop: 40,
   },
   wrapper: {
     padding: 20,
@@ -305,16 +225,68 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     fontFamily: "poppinsregular",
   },
-  featured: {
+  image: {
+    width: 40,
+    height: 40,
+    borderRadius: 50,
+  },
+  sectionHeader: {
     marginTop: 20,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
+  categoryHeader: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: "80%",
+  title: {
+    fontFamily: "poppinsbold",
+  },
+  viewall: {
+    fontSize: 10,
+  },
+  tasksContainer: {
+    borderRadius: 17,
+    borderColor: Colors.light.lightGray,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 20,
+    padding: 15,
+  },
+  tasksHeader: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  mytasks: {
+    fontSize: 14,
+    fontFamily: "poppinsblack",
+  },
+  duesooncontainer: {
+    borderColor: Colors.light.lightGray,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  duesoon: {
+    fontSize: 10,
+    fontFamily: "poppinsregular",
+  },
+  gotomytaskscontainer: {
+    borderRadius: 50,
+    borderColor: Colors.light.lightGray,
+    borderWidth: StyleSheet.hairlineWidth,
+    marginTop: 20,
+    padding: 10,
+  },
+  gotomytask: {
+    textAlign: "center",
+    fontFamily: "poppinsmedium",
+    fontSize: 12,
   },
 });
