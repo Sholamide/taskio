@@ -1,8 +1,14 @@
-import { FlatList, Image, ScrollView, StyleSheet } from "react-native";
+import {
+  FlatList,
+  SafeAreaView,
+  Image,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 
 import { Text, TextInput, TouchableOpacity, View } from "@/components/Themed";
-import { Link, Stack, useRouter } from "expo-router";
-import { SignedOut, useUser } from "@clerk/clerk-expo";
+import { Stack, useRouter } from "expo-router";
+import { useUser } from "@clerk/clerk-expo";
 import React, { useEffect } from "react";
 import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/config/firebase/firebase-config";
@@ -11,7 +17,6 @@ import Colors from "@/constants/Colors";
 import { Entypo } from "@expo/vector-icons";
 import ProjectCard from "@/components/cards/project-card";
 import TaskCard from "@/components/cards/task-card";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -126,7 +131,7 @@ export default function HomeScreen() {
             flexDirection: "row",
             justifyContent: "space-between",
             gap: 8,
-            marginTop:10,
+            marginTop: 10,
             padding: 5,
           }}
         >
@@ -216,7 +221,7 @@ export default function HomeScreen() {
               <Text style={styles.viewall}>see all</Text>
             </TouchableOpacity>
           </View>
-          <FlatList 
+          <FlatList
             showsHorizontalScrollIndicator={false}
             horizontal
             data={featuredtasks}
@@ -227,54 +232,46 @@ export default function HomeScreen() {
         <View style={styles.sectionHeader}>
           <View style={styles.categoryHeader}>
             <Text style={styles.title}>
-              Recent task{" "}
+              Recent tasks{" "}
               <Text style={{ color: Colors.light.primary }}>(10)</Text>
             </Text>
             <TouchableOpacity>
               <Text style={styles.viewall}>see all</Text>
             </TouchableOpacity>
           </View>
-          <TaskCard />
-          <TouchableOpacity onPress={()=>router.push("/(home)/task")} style={{backgroundColor:Colors.light.secondary, paddingVertical:10, borderRadius:8, marginHorizontal:20}}>
-              <Text style={{textAlign:'center', fontFamily:"poppinsregular", fontSize:10}}>View More</Text>
-            </TouchableOpacity>
-          {/* <FlatList
-            scrollEnabled
-            showsVerticalScrollIndicator={true}
-            data={categories}
-            renderItem={({ item }) => <TaskCard task={item} />}
-          /> */}
-        </View>
-        {/* <View style={styles.tasksContainer}>
-          <View style={styles.tasksHeader}>
-            <Text style={styles.mytasks}>My tasks</Text>
-            <TouchableOpacity style={styles.duesooncontainer}>
-              <Text style={styles.duesoon}>Due Soon</Text>
-              <FontAwesome5
-                name="chevron-down"
-                size={12}
-                color={Colors.light.lightGray}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={{ marginTop: 10 }}></View>
-          <View style={{ marginTop: "auto" }}>
+          {[1, 2, 3].map((index: number) => (
+            <TaskCard key={index} />
+          ))}
+          {/* <TaskCard /> */}
+          <View
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: 10,
+            }}
+          >
             <TouchableOpacity
               onPress={() => router.push("/(home)/task")}
-              style={styles.gotomytaskscontainer}
+              style={{
+                backgroundColor: Colors.light.secondary,
+                paddingHorizontal: 50,
+                paddingVertical: 5,
+                borderRadius: 8,
+              }}
             >
-              <Text style={styles.gotomytask}>Go to My Tasks</Text>
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontFamily: "poppinsregular",
+                  fontSize: 10,
+                }}
+              >
+                View More
+              </Text>
             </TouchableOpacity>
           </View>
-        </View> */}
-        <SignedOut>
-          <Link href={"/(auth)/"}>
-            <Text>Sign In</Text>
-          </Link>
-          <Link href={"/(auth)/sign-up"}>
-            <Text>Sign Up</Text>
-          </Link>
-        </SignedOut>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -287,6 +284,7 @@ const styles = StyleSheet.create({
   wrapper: {
     paddingHorizontal: 20,
     paddingVertical: 10,
+    marginBottom: 20,
   },
   header: {
     paddingHorizontal: 20,

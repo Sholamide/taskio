@@ -11,9 +11,9 @@ export default function TaskCard({ task }: { task?: TaskType }) {
     <TouchableOpacity
       style={{
         width: "100%",
-        height: 150,
+        height: 135,
         padding: 10,
-        marginVertical: 6,
+        marginVertical: 5,
         borderColor: "#686565",
         borderWidth: StyleSheet.hairlineWidth,
         borderRadius: 8,
@@ -62,7 +62,7 @@ export default function TaskCard({ task }: { task?: TaskType }) {
                 <Text style={{ fontFamily: "poppinsmedium" }}>02:30PM</Text>
               </Text>
             </View>
-            <Text style={{ fontFamily: "poppinsregular", fontSize:10 }}>Complete design and implementation of all home screen components.
+            <Text style={{ fontFamily: "poppinsregular", fontSize:10, color:"#5f5c5c" }}>Complete design and implementation of all home screen components.
             </Text>
             <TouchableOpacity
               style={{
