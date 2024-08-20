@@ -53,7 +53,7 @@ export default {
     secondary: "#FF7F50",
 
     // for the main background
-    background: '#121212',
+    background: '#000000',
 
     // for important highlights and notifications
     accent: "#FFD700",

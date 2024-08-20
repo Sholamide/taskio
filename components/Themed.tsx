@@ -10,7 +10,6 @@ import {
   TextInput as DefaultTextInput,
   TouchableOpacity as DefaultTouchableOpacity,
 } from "react-native";
-
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "./useColorScheme";
 

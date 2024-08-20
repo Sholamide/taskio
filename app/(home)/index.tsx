@@ -1,23 +1,17 @@
-import {
-  FlatList,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Touchable,
-} from "react-native";
+import { FlatList, Image, ScrollView, StyleSheet } from "react-native";
 
-import { Text, TouchableOpacity, View } from "@/components/Themed";
+import { Text, TextInput, TouchableOpacity, View } from "@/components/Themed";
 import { Link, Stack, useRouter } from "expo-router";
 import { SignedOut, useUser } from "@clerk/clerk-expo";
-import FeaturedTaskCard from "@/components/cards/featured-task-card";
 import React, { useEffect } from "react";
 import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/config/firebase/firebase-config";
-import CategoriesCard from "@/components/cards/task-categories-card";
 import useStore from "@/store/store";
 import Colors from "@/constants/Colors";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
+import ProjectCard from "@/components/cards/project-card";
+import TaskCard from "@/components/cards/task-card";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -72,7 +66,7 @@ export default function HomeScreen() {
 
         if (userSnap.exists()) {
           setActiveUser(userSnap.data() as any);
-          console.log("Existing user data fetched");
+          // console.log("Existing user data fetched");
         } else {
           // User doesn't exist, create new user
           const newUserData = {
@@ -90,49 +84,168 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Stack.Screen
         options={{
           headerShown: false,
         }}
       />
+      <View style={styles.header}>
+        <View style={styles.headerleft}>
+          <Text style={styles.headerTitle}>
+            Hello{" "}
+            {user?.firstName ||
+              user?.emailAddresses[0].emailAddress.split("@")[0]}
+            ,
+          </Text>
+          <Text style={styles.headerPunchline}>
+            Task smarter, not harder ✨
+          </Text>
+        </View>
+        <TouchableOpacity onPress={() => router.push("/(home)/account")}>
+          <Image style={styles.image} src={user?.imageUrl} />
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.wrapper}>
-        <View style={styles.header}>
-          <View style={styles.headerleft}>
-            <Text style={styles.headerTitle}>Hello {user?.firstName},</Text>
-            <Text style={styles.headerPunchline}>
-              Task smarter, not harder ✨
+        <View
+          style={{
+            borderColor: "#686565",
+            borderWidth: StyleSheet.hairlineWidth,
+            borderRadius: 5,
+            padding: 15,
+          }}
+        >
+          <TextInput
+            style={{ fontSize: 10, fontFamily: "poppinsregular" }}
+            placeholder="Search tasks or projects..."
+          />
+        </View>
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            gap: 8,
+            marginTop:10,
+            padding: 5,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              borderColor: "#686565",
+              borderWidth: StyleSheet.hairlineWidth,
+              borderRadius: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              padding: 10,
+              height: 100,
+              width: "48%",
+            }}
+          >
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Entypo name="list" size={20} color={Colors.light.primary} />
+              <Text style={{ fontFamily: "poppinsregular", fontSize: 14 }}>
+                All tasks
+              </Text>
+            </View>
+            <Text style={{ fontSize: 12, fontFamily: "poppinsregular" }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontFamily: "poppinsbold",
+                  color: Colors.light.primary,
+                }}
+              >
+                12
+              </Text>
+              &nbsp;tasks
             </Text>
-          </View>
-          <TouchableOpacity onPress={() => router.push("/(home)/account")}>
-            <Image style={styles.image} src={user?.imageUrl} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              borderColor: "#686565",
+              borderWidth: StyleSheet.hairlineWidth,
+              borderRadius: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              padding: 10,
+              height: 100,
+              width: "48%",
+            }}
+          >
+            <View
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Entypo name="flattr" size={20} color={Colors.light.primary} />
+              <Text style={{ fontFamily: "poppinsregular", fontSize: 14 }}>
+                Projects
+              </Text>
+            </View>
+            <Text style={{ fontSize: 12, fontFamily: "poppinsregular" }}>
+              <Text
+                style={{
+                  fontSize: 18,
+                  fontFamily: "poppinsbold",
+                  color: Colors.light.primary,
+                }}
+              >
+                4
+              </Text>
+              &nbsp;projects
+            </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.sectionHeader}>
-          <Text style={styles.title}>Featured Tasks</Text>
-          <FlatList
+          <View style={styles.categoryHeader}>
+            <Text style={styles.title}>Your Projects</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewall}>see all</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList 
             showsHorizontalScrollIndicator={false}
             horizontal
             data={featuredtasks}
-            renderItem={({ item }) => <FeaturedTaskCard task={item} />}
+            renderItem={({ item }) => <ProjectCard task={item} />}
             keyExtractor={(task) => task.id}
           />
         </View>
         <View style={styles.sectionHeader}>
           <View style={styles.categoryHeader}>
-            <Text style={styles.title}>Categories</Text>
+            <Text style={styles.title}>
+              Recent task{" "}
+              <Text style={{ color: Colors.light.primary }}>(10)</Text>
+            </Text>
             <TouchableOpacity>
-              <Text style={styles.viewall}>View All</Text>
+              <Text style={styles.viewall}>see all</Text>
             </TouchableOpacity>
           </View>
-          <FlatList
-            showsHorizontalScrollIndicator={false}
-            horizontal
+          <TaskCard />
+          <TouchableOpacity onPress={()=>router.push("/(home)/task")} style={{backgroundColor:Colors.light.secondary, paddingVertical:10, borderRadius:8, marginHorizontal:20}}>
+              <Text style={{textAlign:'center', fontFamily:"poppinsregular", fontSize:10}}>View More</Text>
+            </TouchableOpacity>
+          {/* <FlatList
+            scrollEnabled
+            showsVerticalScrollIndicator={true}
             data={categories}
-            renderItem={({ item }) => <CategoriesCard category={item} />}
-          />
+            renderItem={({ item }) => <TaskCard task={item} />}
+          /> */}
         </View>
-        <View style={styles.tasksContainer}>
+        {/* <View style={styles.tasksContainer}>
           <View style={styles.tasksHeader}>
             <Text style={styles.mytasks}>My tasks</Text>
             <TouchableOpacity style={styles.duesooncontainer}>
@@ -146,44 +259,14 @@ export default function HomeScreen() {
           </View>
           <View style={{ marginTop: 10 }}></View>
           <View style={{ marginTop: "auto" }}>
-            <TouchableOpacity onPress={()=>router.push("/(home)/task")} style={styles.gotomytaskscontainer}>
+            <TouchableOpacity
+              onPress={() => router.push("/(home)/task")}
+              style={styles.gotomytaskscontainer}
+            >
               <Text style={styles.gotomytask}>Go to My Tasks</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* <Text style={{ color: "#fff", marginTop: 12 }}>{user?.id}</Text> */}
-        {/* <View style={{ backgroundColor: "#fff" }}></View> */}
-        {/* <SignedIn>
-          <Text style={styles.title}>
-            You are logged in as {user?.emailAddresses[0].emailAddress}
-          </Text>
-          <Text>{user?.firstName}</Text>
-          <Text>{user?.lastName}</Text>
-
-          <Pressable
-            style={{
-              backgroundColor: Colors.light.secondary,
-              marginVertical: 10,
-              borderRadius: 8,
-              padding: 10,
-            }}
-            onPress={() => signOut({ redirectUrl: "/(auth)sign-up" })}
-          >
-            <Text style={{ textAlign: "center" }}>sign out</Text>
-          </Pressable>
-        </SignedIn> */}
-        {/* <Pressable
-          style={{
-            backgroundColor: Colors.light.secondary,
-            marginVertical: 50,
-            borderRadius: 8,
-            padding: 10,
-          }}
-          onPress={() => signOut({ redirectUrl: "/(auth)sign-up" })}
-        >
-          <Text style={{ textAlign: "center" }}>sign out</Text>
-        </Pressable> */}
+        </View> */}
         <SignedOut>
           <Link href={"/(auth)/"}>
             <Text>Sign In</Text>
@@ -193,22 +276,24 @@ export default function HomeScreen() {
           </Link>
         </SignedOut>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40,
   },
   wrapper: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   header: {
+    paddingHorizontal: 20,
     display: "flex",
     flexDirection: "row",
     alignItems: "center",
+    padding: 5,
     justifyContent: "space-between",
   },
   headerleft: {
@@ -231,7 +316,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   sectionHeader: {
-    marginTop: 20,
+    padding: 10,
   },
   categoryHeader: {
     display: "flex",

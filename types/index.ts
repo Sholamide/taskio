@@ -5,6 +5,12 @@ type featuredTasks = {
     description: string,
     userImageURL: string
 }
+type TaskType = {
+    name: string,
+    description: string,
+    defaultImageUrl: string,
+    themeColor: string
+}
 
 type taskCategory = {
     name: string,
