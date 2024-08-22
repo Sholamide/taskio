@@ -15,8 +15,8 @@ const FAB = ({
 }) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Entypo name="plus" size={24} color="white" />
-      <Text style={styles.title}>{title}</Text>
+      <Entypo name="plus" size={30} color="white" />
+      {/* <Text style={styles.title}>{title}</Text> */}
     </TouchableOpacity>
   );
 };
@@ -29,14 +29,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderRadius: 20,
+    borderRadius: 50,
     position: "absolute",
     bottom: 25,
-    right: 10,
-    gap: 10,
-    backgroundColor: Colors.light.secondary,
-    paddingHorizontal: 15,
-    paddingVertical: 6,
+    right: 15,
+    gap:1,
+    backgroundColor: Colors.light.primary,
+    padding: 20,
   },
   title: {
     fontSize: 13,

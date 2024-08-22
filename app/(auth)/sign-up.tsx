@@ -1,26 +1,23 @@
 import React from "react";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
+import { useSignUp } from "@clerk/clerk-expo";
+import Colors from "@/constants/Colors";
+import { Feather } from "@expo/vector-icons";
 import {
   ActivityIndicator,
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
-import {
-  SafeAreaView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "@/components/Themed";
-import Colors from "@/constants/Colors";
-import { useOAuth, useSignUp } from "@clerk/clerk-expo";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { Text, TextInput, TouchableOpacity, View } from "@/components/Themed";
+import { ReactNativeModal } from "react-native-modal";
+import GoogleAuth from "@/components/google-auth";
 
 const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -39,70 +36,69 @@ export default function SignUpScreen() {
   useWarmUpBrowser();
 
   const { isLoaded, signUp, setActive } = useSignUp();
+  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
 
   const router = useRouter();
-
   const [loading, setLoading] = React.useState(false);
-  const [username, setUsername] = React.useState("");
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [confirmPassword, setConfirmPassword] = React.useState("");
   const [pendingVerification, setPendingVerification] = React.useState(false);
   const [code, setCode] = React.useState("");
-  const [signinError, setSigninError] = React.useState(false);
-  const [signinErrorMessage, setSigninErrorMessage] = React.useState("");
 
-  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
+  const [signUpForm, setSignUpForm] = React.useState({
+    username: "",
+    emailAddress: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-  const handleOAuth = React.useCallback(async () => {
-    try {
-      const { createdSessionId, signIn, signUp, setActive } =
-        await startOAuthFlow({
-          redirectUrl: Linking.createURL("/dashboard", { scheme: "myapp" }),
-        });
-
-      if (createdSessionId) {
-        setActive!({ session: createdSessionId });
-      } else {
-        // Use signIn or signUp for next steps such as MFA
-      }
-    } catch (err) {
-      console.error("OAuth error", err);
-    }
-  }, []);
+  const [verification, setVerification] = React.useState({
+    state: "default",
+    error: "",
+    code: "",
+  });
 
   const onSignUpPress = async () => {
     setLoading(true);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValidEmail = emailRegex.test(signUpForm.emailAddress);
+
     if (!isLoaded) {
       setLoading(false);
       return;
     }
 
-    if (password !== confirmPassword) {
-      setSigninErrorMessage("Passwords do not match");
+    if (signUpForm.password !== signUpForm.confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      setLoading(false);
+      return;
+    }
+    if (signUpForm.username == "") {
+      Alert.alert("Error", "Username required");
+      setLoading(false);
+      return;
+    }
+    if (!isValidEmail) {
+      Alert.alert("Error", "Invalid email");
       setLoading(false);
       return;
     }
 
     try {
       await signUp.create({
-        // firstName,
-        // lastName,
-        username,
-        emailAddress,
-        password,
+        username: signUpForm.username,
+        emailAddress: signUpForm.emailAddress,
+        password: signUpForm.password,
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
       setLoading(false);
+      setVerification({
+        ...verification,
+        state: "pending",
+      });
     } catch (err: any) {
-      setSigninError(true);
       setLoading(false);
-      if (err.errors.length > 1) {
-        setSigninErrorMessage("missing fields required");
-      }
-      setSigninErrorMessage(err.errors[0].message);
+      Alert.alert("Error", err.errors[0].message);
       // setSigninErrorMessage(err.errors[0].message);
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
@@ -112,6 +108,7 @@ export default function SignUpScreen() {
 
   const onPressVerify = async () => {
     setLoading(true);
+
     if (!isLoaded) {
       setLoading(false);
       return;
@@ -124,228 +121,444 @@ export default function SignUpScreen() {
 
       if (completeSignUp.status === "complete") {
         await setActive({ session: completeSignUp.createdSessionId });
+
         router.replace("/(home)/");
         setLoading(false);
+        // Alert.alert('Success', 'Account verified', [
+        //   {
+        //     text: 'Go home',
+        //     onPress: () =>router.push("/(home)/"),
+        //   },
+        // ]);
       } else {
-        console.error(JSON.stringify(completeSignUp, null, 2));
+        setVerification({
+          ...verification,
+          error: "Verification failed. Please try again.",
+          state: "failed",
+        });
         setLoading(false);
       }
     } catch (err: any) {
       setLoading(false);
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
-      console.error(JSON.stringify(err.errors.message, null, 2));
+      setVerification({
+        ...verification,
+        error: "Verification failed. Please try again.",
+        state: "failed",
+      });
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {!pendingVerification && (
-        <View style={styles.wrapper}>
-          <View style={styles.introWrapper}>
-            <Text
-              lightColor={Colors.light.secondary}
-              darkColor={Colors.dark.secondary}
-              style={styles.introHeader}
-            >
-              Create Account
-            </Text>
-            <Text
-              lightColor={Colors.light.text}
-              darkColor={Colors.dark.text}
-              style={styles.introSubtext}
-            >
-              Sign up to get started
-            </Text>
-          </View>
-          <View style={{ alignItems: "center" }}>
+    <ScrollView style={styles.container}>
+      <View style={styles.wrapper}>
+        <View style={styles.introWrapper}>
+          <Text
+            lightColor={Colors.light.secondary}
+            darkColor={Colors.dark.secondary}
+            style={styles.introHeader}
+          >
+            Create Account
+          </Text>
+          <Text
+            lightColor={Colors.light.text}
+            darkColor={Colors.dark.text}
+            style={styles.introSubtext}
+          >
+            Sign up to get started
+          </Text>
+          <GoogleAuth title="Sign Up with Google" />
+        </View>
+        <View style={{ alignItems: "center" }}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 10,
+              alignItems: "center",
+              marginVertical: 20,
+            }}
+          >
             <View
               style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                marginVertical: 20,
-                gap: 50,
+                borderWidth: StyleSheet.hairlineWidth,
+                width: "40%",
+                borderColor: "#5a5757",
               }}
+            />
+            <Text
+              lightColor={Colors.light.primary}
+              darkColor={Colors.dark.primary}
             >
-              {/* <TouchableOpacity onPress={handleOAuth}>
-                <FontAwesome5
-                  name="facebook"
-                  size={50}
-                  color={Colors.light.secondary}
-                />
-              </TouchableOpacity> */}
-              <TouchableOpacity onPress={handleOAuth}>
-                <FontAwesome5
-                  name="google"
-                  size={50}
-                  color={Colors.light.secondary}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={{ alignItems: "center" }}>
+              or
+            </Text>
             <View
               style={{
-                display: "flex",
-                flexDirection: "row",
-                gap: 10,
-                alignItems: "center",
-                marginVertical: 20,
+                borderWidth: StyleSheet.hairlineWidth,
+                width: "40%",
+                borderColor: "#5a5757",
               }}
-            >
-              <View
-                style={{
-                  borderWidth: StyleSheet.hairlineWidth,
-                  width: "40%",
-                  borderColor: "#5a5757",
-                }}
-              />
-              <Text
-                lightColor={Colors.light.primary}
-                darkColor={Colors.dark.primary}
-              >
-                or
-              </Text>
-              <View
-                style={{
-                  borderWidth: StyleSheet.hairlineWidth,
-                  width: "40%",
-                  borderColor: "#5a5757",
-                }}
-              />
-            </View>
+            />
           </View>
+        </View>
+        <View style={{ padding: 10 }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={styles.signupWrapper}>
-                {/* username */}
-                <TextInput
-                  autoCapitalize="none"
-                  value={username}
-                  onChangeText={(username) => setUsername(username)}
-                  lightColor={Colors.light.text}
-                  darkColor={Colors.dark.text}
-                  placeholder="Username..."
-                  style={styles.input}
-                />
-
-                {/* firstname */}
-                {/* <TextInput
-                  autoCapitalize="none"
-                  value={firstName}
-                  onChangeText={(firstName) => setFirstName(firstName)}
-                  lightColor={Colors.light.text}
-                  darkColor={Colors.dark.text}
-                  placeholder="First Name..."
-                  style={styles.input}
-                /> */}
-
-                {/* lastname */}
-                {/* <TextInput
-                  autoCapitalize="none"
-                  value={lastName}
-                  onChangeText={(lastName) => setLastName(lastName)}
-                  lightColor={Colors.light.text}
-                  darkColor={Colors.dark.text}
-                  placeholder="Last Name..."
-                  style={styles.input}
-                /> */}
-
-                {/* email address */}
-                <TextInput
-                  autoCapitalize="none"
-                  value={emailAddress}
-                  onChangeText={(email) => setEmailAddress(email)}
-                  lightColor={Colors.light.text}
-                  darkColor={Colors.dark.text}
-                  placeholder="Email"
-                  style={styles.input}
-                />
-
-                {/* password */}
-                <TextInput
-                  value={password}
-                  onChangeText={(password) => setPassword(password)}
-                  secureTextEntry={true}
-                  keyboardType="visible-password"
-                  lightColor={Colors.light.text}
-                  darkColor={Colors.dark.text}
-                  placeholder="password..."
-                  style={styles.input}
-                />
-
-                {/* confirm password */}
-                <TextInput
-                  value={confirmPassword}
-                  lightColor={Colors.light.text}
-                  secureTextEntry={true}
-                  darkColor={Colors.dark.text}
-                  placeholder="confirm password..."
-                  style={styles.input}
-                  onChangeText={(confirmPassword) =>
-                    setConfirmPassword(confirmPassword)
-                  }
-                />
-                <Pressable
-                  style={[
-                    {
-                      backgroundColor: loading
-                        ? "#963c34"
-                        : Colors.light.secondary,
-                    },
-                    styles.signupButtonWrapper,
-                  ]}
-                  onPress={onSignUpPress}
+              <View
+                style={{
+                  marginVertical: 10,
+                  width: "100%",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 6,
+                  }}
                 >
-                  <Text
+                  Username
+                </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    position: "relative",
+                    backgroundColor: "#191818",
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: "#f5f5f5",
+                    borderWidth: StyleSheet.hairlineWidth,
+                  }}
+                >
+                  <Feather
+                    style={{ marginLeft: 4 }}
+                    name="user"
+                    size={24}
+                    color={Colors.light.secondary}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    textContentType="username"
+                    value={signUpForm.username}
+                    autoCapitalize="none"
                     lightColor={Colors.light.text}
                     darkColor={Colors.dark.text}
-                    style={styles.signupButton}
-                  >
-                    Sign Up
-                  </Text>
-                  {loading && <ActivityIndicator />}
-                </Pressable>
-                {signinError && (
-                  <Text
-                    lightColor={Colors.light.crimsonRed}
-                    darkColor={Colors.dark.crimsonRed}
-                    style={{
-                      textAlign: "center",
-                      marginTop: 10,
-                      fontSize: 16,
-                      fontWeight: "400",
-                    }}
-                  >
-                    {signinErrorMessage}
-                  </Text>
-                )}
-
-                <View style={{ alignItems: "center", marginTop: 30 }}>
-                  <Pressable
-                    onPress={() => {
-                      router.push("/(auth)");
-                    }}
-                  >
-                    <Text>
-                      Already have an account?,&nbsp;
-                      <Text
-                        lightColor={Colors.light.primary}
-                        darkColor={Colors.dark.primary}
-                      >
-                        Sign in!
-                      </Text>
-                    </Text>
-                  </Pressable>
+                    placeholder="Enter username"
+                    onChangeText={(value) =>
+                      setSignUpForm({ ...signUpForm, username: value })
+                    }
+                  />
                 </View>
               </View>
             </TouchableWithoutFeedback>
           </KeyboardAvoidingView>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View
+                style={{
+                  marginVertical: 10,
+                  width: "100%",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 6,
+                  }}
+                >
+                  Email
+                </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    position: "relative",
+                    backgroundColor: "#191818",
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: "#f5f5f5",
+                    borderWidth: StyleSheet.hairlineWidth,
+                  }}
+                >
+                  <Feather
+                    style={{ marginLeft: 4 }}
+                    name="mail"
+                    size={24}
+                    color={Colors.light.secondary}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    textContentType="emailAddress"
+                    value={signUpForm.emailAddress}
+                    autoCapitalize="none"
+                    lightColor={Colors.light.text}
+                    darkColor={Colors.dark.text}
+                    placeholder="Enter email"
+                    onChangeText={(value) =>
+                      setSignUpForm({ ...signUpForm, emailAddress: value })
+                    }
+                  />
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View
+                style={{
+                  marginVertical: 10,
+                  width: "100%",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 6,
+                  }}
+                >
+                  Password
+                </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    position: "relative",
+                    backgroundColor: "#191818",
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: "#f5f5f5",
+                    borderWidth: StyleSheet.hairlineWidth,
+                  }}
+                >
+                  <Feather
+                    style={{ marginLeft: 4 }}
+                    name="lock"
+                    size={24}
+                    color={Colors.light.secondary}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    textContentType="password"
+                    value={signUpForm.password}
+                    autoCapitalize="none"
+                    lightColor={Colors.light.text}
+                    darkColor={Colors.dark.text}
+                    placeholder="Enter password"
+                    onChangeText={(value) =>
+                      setSignUpForm({ ...signUpForm, password: value })
+                    }
+                  />
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View
+                style={{
+                  marginVertical: 10,
+                  width: "100%",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 6,
+                  }}
+                >
+                  Confirm Password
+                </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    position: "relative",
+                    backgroundColor: "#191818",
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: "#f5f5f5",
+                    borderWidth: StyleSheet.hairlineWidth,
+                  }}
+                >
+                  <Feather
+                    style={{ marginLeft: 4 }}
+                    name="lock"
+                    size={24}
+                    color={Colors.light.secondary}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    textContentType="password"
+                    value={signUpForm.confirmPassword}
+                    autoCapitalize="none"
+                    lightColor={Colors.light.text}
+                    darkColor={Colors.dark.text}
+                    placeholder="Confirm password"
+                    onChangeText={(value) =>
+                      setSignUpForm({ ...signUpForm, confirmPassword: value })
+                    }
+                  />
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+          <TouchableOpacity
+            disabled={loading}
+            onPress={onSignUpPress}
+            style={[
+              {
+                backgroundColor: loading ? "#963c34" : Colors.light.secondary,
+              },
+              styles.signupButtonWrapper,
+            ]}
+          >
+            <Feather name="log-in" size={20} color={Colors.light.primary} />
+            <Text style={styles.signupButton}> Sign Up</Text>
+            {loading && <ActivityIndicator />}
+          </TouchableOpacity>
+          <Link
+            style={{
+              textAlign: "center",
+              color: "#fff",
+              marginTop: 30,
+              fontSize: 14,
+            }}
+            href={"/(auth)"}
+          >
+            Already have an account?,&nbsp;
+            <Text
+              lightColor={Colors.light.primary}
+              darkColor={Colors.dark.primary}
+            >
+              Sign in!
+            </Text>
+          </Link>
         </View>
-      )}
+      </View>
+      <ReactNativeModal
+        isVisible={verification.state === "pending"}
+        onModalHide={() => {
+          if (verification.state === "success") {
+            setShowSuccessModal(true);
+          }
+        }}
+      >
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            height: 300,
+          }}
+        >
+          <Text
+            style={{
+              textAlign: "center",
+              marginBottom: 10,
+              fontSize: 20,
+              color: Colors.light.primary,
+              fontFamily: "poppinsmedium",
+            }}
+          >
+            Verification
+          </Text>
+          <Text
+            style={{
+              marginBottom: 10,
+            }}
+          >
+            We've sent a verification code to {signUpForm.emailAddress}.
+          </Text>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View
+                style={{
+                  marginVertical: 10,
+                  width: "100%",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 6,
+                  }}
+                >
+                  Code
+                </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    position: "relative",
+                    backgroundColor: "#191818",
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: "#f5f5f5",
+                    borderWidth: StyleSheet.hairlineWidth,
+                  }}
+                >
+                  <Feather
+                    style={{ marginLeft: 4 }}
+                    name="lock"
+                    size={24}
+                    color={Colors.light.secondary}
+                  />
+                  <TextInput
+                    keyboardType="numeric"
+                    style={styles.input}
+                    textContentType="username"
+                    value={verification.code}
+                    lightColor={Colors.light.text}
+                    darkColor={Colors.dark.text}
+                    placeholder="12345"
+                    onChangeText={(value) =>
+                      setVerification({ ...verification, code: value })
+                    }
+                  />
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+          {verification.error && (
+            <Text style={{ color: Colors.light.crimsonRed, marginTop: 5 }}>
+              {verification.error}
+            </Text>
+          )}
+          <TouchableOpacity
+            disabled={loading}
+            onPress={onSignUpPress}
+            style={[
+              {
+                backgroundColor: loading ? "#963c34" : Colors.light.secondary,
+              },
+              styles.signupButtonWrapper,
+            ]}
+          >
+            <Text style={styles.signupButton}> VERIFY CODE</Text>
+            {loading && <ActivityIndicator />}
+          </TouchableOpacity>
+        </View>
+      </ReactNativeModal>
       {pendingVerification && (
         <View style={styles.container}>
           <View style={styles.wrapper}>
@@ -361,26 +574,25 @@ export default function SignUpScreen() {
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingTop: 50,
   },
   wrapper: {
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
     flex: 1,
+    justifyContent: "center",
+    padding: 20,
   },
   introWrapper: {
-    paddingHorizontal: 30,
     justifyContent: "center",
     alignItems: "center",
     gap: 10,
+    marginTop: 20,
   },
   introHeader: {
     fontSize: 30,
@@ -395,12 +607,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   input: {
-    height: 50,
-    margin: 12,
-    width: 360,
-    borderWidth: 0.2,
+    borderRadius: 50,
     padding: 10,
-    borderRadius: 5,
+    flex: 1,
+    textAlign: "left",
   },
   signupButtonWrapper: {
     display: "flex",

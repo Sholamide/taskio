@@ -1,6 +1,5 @@
 import React from "react";
-import { useRouter } from "expo-router";
-import * as Linking from "expo-linking";
+import { Link, useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import {
   SafeAreaView,
@@ -15,13 +14,13 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
   TouchableWithoutFeedback,
 } from "react-native";
 import Colors from "../../constants/Colors";
-import { useOAuth, useSignIn } from "@clerk/clerk-expo";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { useSignIn } from "@clerk/clerk-expo";
+import { Feather } from "@expo/vector-icons";
+import GoogleAuth from "@/components/google-auth";
 
 const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -41,30 +40,10 @@ const SignInScreen = () => {
   const router = useRouter();
 
   const [loading, setLoading] = React.useState(false);
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [signinError, setSigninError] = React.useState(false);
-  const [signinErrorMessage, setSigninErrorMessage] = React.useState("");
-
-  const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
-
-  const handleOAuth = React.useCallback(async () => {
-    try {
-      const { createdSessionId, signIn, signUp, setActive } =
-        await startOAuthFlow({
-          redirectUrl: Linking.createURL("/dashboard", { scheme: "myapp" }),
-        });
-
-      if (createdSessionId) {
-        setActive!({ session: createdSessionId });
-      } else {
-        // Use signIn or signUp for next steps such as MFA
-      }
-    } catch (err) {
-      console.error("OAuth error", err);
-    }
-  }, []);
-
+  const [signInForm, setSignInForm] = React.useState({
+    emailAddress: "",
+    password: "",
+  });
   const onSignInPress = React.useCallback(async () => {
     setLoading(true);
     if (!isLoaded) {
@@ -73,8 +52,8 @@ const SignInScreen = () => {
 
     try {
       const signInAttempt = await signIn.create({
-        identifier: emailAddress,
-        password,
+        identifier: signInForm.emailAddress,
+        password: signInForm.password,
       });
 
       if (signInAttempt.status === "complete") {
@@ -88,12 +67,10 @@ const SignInScreen = () => {
         setLoading(false);
       }
     } catch (err: any) {
-      setSigninError(true);
-      setSigninErrorMessage(err.errors[0].message);
-      // console.error("sign in error", JSON.stringify(err, null, 2));
+      Alert.alert("Error", err.errors[0].longMessage);
       setLoading(false);
     }
-  }, [isLoaded, emailAddress, password]);
+  }, [isLoaded, signInForm.emailAddress, signInForm.password]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -126,25 +103,6 @@ const SignInScreen = () => {
             style={{
               display: "flex",
               flexDirection: "row",
-              alignItems: "center",
-              marginVertical: 10,
-              gap: 50,
-            }}
-          >
-            <TouchableOpacity onPress={handleOAuth}>
-              <FontAwesome5
-                name="google"
-                size={50}
-                color={Colors.light.secondary}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View style={{ alignItems: "center" }}>
-          <View
-            style={{
-              display: "flex",
-              flexDirection: "row",
               gap: 10,
               alignItems: "center",
               marginVertical: 10,
@@ -171,93 +129,164 @@ const SignInScreen = () => {
               }}
             />
           </View>
+          <GoogleAuth title="Log In with Google" />
         </View>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={[styles.loginWrapper]}>
-              <TextInput
-                value={emailAddress}
-                autoCapitalize="none"
-                lightColor={Colors.light.text}
-                darkColor={Colors.dark.text}
-                placeholder="Email..."
-                style={styles.input}
-                onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-              />
-              <TextInput
-                value={password}
-                lightColor={Colors.light.text}
-                darkColor={Colors.dark.text}
-                placeholder="Password..."
-                style={styles.input}
-                secureTextEntry={true}
-                onChangeText={(password) => setPassword(password)}
-              />
-              <Pressable
-                onPress={() => {
-                  Alert.alert("You clicked on forgot password");
+        <View style={{ padding: 10 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View
+                style={{
+                  marginVertical: 10,
+                  width: "100%",
                 }}
-                style={styles.forgotPasswordPressable}
               >
                 <Text
-                  lightColor={Colors.light.primary}
-                  darkColor={Colors.dark.primary}
-                  style={styles.forgotPassword}
-                >
-                  Forgot Password?
-                </Text>
-              </Pressable>
-
-              <Pressable
-                disabled={loading}
-                onPress={onSignInPress}
-                style={[
-                  {
-                    backgroundColor: loading
-                      ? "#963c34"
-                      : Colors.light.secondary,
-                  },
-                  styles.signinwrapper,
-                ]}
-              >
-                <Text style={styles.signin}> Sign in</Text>
-                {loading && <ActivityIndicator />}
-              </Pressable>
-              {signinError && (
-                <Text
-                  lightColor={Colors.light.crimsonRed}
-                  darkColor={Colors.dark.crimsonRed}
                   style={{
-                    textAlign: "center",
-                    marginTop: 10,
-                    fontSize: 16,
-                    fontWeight: "400",
+                    fontSize: 14,
+                    marginBottom: 6,
                   }}
                 >
-                  {signinErrorMessage}
+                  Email
                 </Text>
-              )}
-            </View>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-        <View style={styles.footer}>
-          <Pressable
-            onPress={() => {
-              router.push("/(auth)/sign-up");
-            }}
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    position: "relative",
+                    backgroundColor: "#191818",
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: "#f5f5f5",
+                    borderWidth: StyleSheet.hairlineWidth,
+                  }}
+                >
+                  <Feather
+                    style={{ marginLeft: 4 }}
+                    name="mail"
+                    size={24}
+                    color={Colors.light.secondary}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    textContentType="emailAddress"
+                    value={signInForm.emailAddress}
+                    autoCapitalize="none"
+                    lightColor={Colors.light.text}
+                    darkColor={Colors.dark.text}
+                    placeholder="Enter email"
+                    onChangeText={(value) =>
+                      setSignInForm({ ...signInForm, emailAddress: value })
+                    }
+                  />
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
           >
-            <Text>
-              Don't have an account?,&nbsp;
-              <Text
-                lightColor={Colors.light.primary}
-                darkColor={Colors.dark.primary}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View
+                style={{
+                  marginVertical: 10,
+                  width: "100%",
+                }}
               >
-                Sign up!
-              </Text>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    marginBottom: 6,
+                  }}
+                >
+                  Password
+                </Text>
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    position: "relative",
+                    backgroundColor: "#191818",
+                    borderRadius: 10,
+                    padding: 5,
+                    borderColor: "#f5f5f5",
+                    borderWidth: StyleSheet.hairlineWidth,
+                  }}
+                >
+                  <Feather
+                    style={{ marginLeft: 4 }}
+                    name="lock"
+                    size={24}
+                    color={Colors.light.secondary}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    textContentType="password"
+                    secureTextEntry={true}
+                    value={signInForm.password}
+                    autoCapitalize="none"
+                    lightColor={Colors.light.text}
+                    darkColor={Colors.dark.text}
+                    placeholder="Enter password"
+                    onChangeText={(value) =>
+                      setSignInForm({ ...signInForm, password: value })
+                    }
+                  />
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert("You clicked on forgot password");
+            }}
+            style={styles.forgotPasswordPressable}
+          >
+            <Text
+              lightColor={Colors.light.primary}
+              darkColor={Colors.dark.primary}
+              style={styles.forgotPassword}
+            >
+              Forgot Password?
             </Text>
-          </Pressable>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            disabled={loading}
+            onPress={onSignInPress}
+            style={[
+              {
+                backgroundColor: loading ? "#963c34" : Colors.light.secondary,
+              },
+              styles.signinwrapper,
+            ]}
+          >
+            <Feather name="log-in" size={20} color={Colors.light.primary} />
+            <Text style={styles.signin}> Sign In</Text>
+            {loading && <ActivityIndicator />}
+          </TouchableOpacity>
+          <Link
+            style={{
+              textAlign: "center",
+              color: "#fff",
+              marginTop: 30,
+              fontSize: 14,
+            }}
+            href={"/(auth)/sign-up"}
+          >
+            Don't have an account?,&nbsp;
+            <Text
+              lightColor={Colors.light.primary}
+              darkColor={Colors.dark.primary}
+            >
+              Sign up!
+            </Text>
+          </Link>
         </View>
       </View>
     </SafeAreaView>
@@ -269,25 +298,22 @@ export default SignInScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
   },
 
   wrapper: {
     height: "100%",
     justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 80,
-    paddingHorizontal: 15,
+    padding: 20,
   },
 
   headerText: {
     fontSize: 40,
     letterSpacing: 10,
     fontWeight: "900",
+    textAlign: "center",
   },
   introWrapper: {
-    paddingVertical: 10,
-    paddingHorizontal: 30,
+    marginTop: 10,
     justifyContent: "center",
     alignItems: "center",
     gap: 10,
@@ -301,24 +327,11 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
 
-  loginWrapper: {
-    paddingVertical: 30,
-    paddingHorizontal: 10,
-  },
-
-  image: {
-    flex: 1,
-    justifyContent: "center",
-    maxHeight: "auto",
-  },
-
   input: {
-    height: 50,
-    margin: 12,
-    width: 360,
-    borderWidth: 0.2,
+    borderRadius: 50,
     padding: 10,
-    borderRadius: 5,
+    flex: 1,
+    textAlign: "left",
   },
 
   forgotPasswordPressable: {
@@ -336,7 +349,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     marginTop: 30,
-    width: 350,
+    width: "100%",
     padding: 15,
     borderRadius: 6,
     alignItems: "center",
@@ -345,14 +358,8 @@ const styles = StyleSheet.create({
   },
 
   signin: {
-    fontSize: 16,
-  },
-
-  footer: {
-    marginTop: 15,
-  },
-
-  footerButton: {
-    paddingVertical: 20,
+    fontSize: 14,
+    fontFamily: "poppinsbold",
+    color: "#000",
   },
 });
