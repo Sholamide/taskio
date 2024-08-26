@@ -1,22 +1,39 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  TextInput,
 } from "react-native";
 import { Stack } from "expo-router";
-import { Text, TouchableOpacity, View } from "@/components/Themed";
+import { Text, TouchableOpacity, View, TextInput } from "@/components/Themed";
 import { View as NativeView } from "react-native";
 import { Entypo, Feather } from "@expo/vector-icons";
 import FAB from "@/components/fab";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import Colors from "@/constants/Colors";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import {
+  addDoc,
+  arrayUnion,
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { db } from "@/config/firebase/firebase-config";
+import { useUser } from "@clerk/clerk-expo";
+import useUserStore from "@/store/user-store";
 
 export default function TaskScreen() {
   const sheetRef = useRef<BottomSheet>(null);
+  const { user } = useUser();
+  const { addTask } = useUserStore();
   const [IsCreateTaskMode, setIsCreateTaskMode] = useState(false);
-  const snapPoints = useMemo(() => ["25%", "50%", "90%"], []);
+  const [loading, setLoading] = useState(false);
+  const snapPoints = useMemo(() => ["60%", "90%"], []);
 
   // callbacks
   const handleSheetChanges = useCallback((index: number) => {
@@ -31,6 +48,39 @@ export default function TaskScreen() {
     sheetRef.current?.close();
     setIsCreateTaskMode(false);
   }, []);
+
+  const [todo, setTodo] = React.useState({
+    title: "",
+    description: "",
+  });
+
+  const handleTaskCreation = async (title: string, description: string) => {
+    setLoading(true);
+    const newTask = {
+      // Generate a unique ID
+      id: Date.now().toString(),
+      title: title,
+      description: description,
+      createdAt: new Date(),
+    };
+
+    try {
+      const userDocRef = doc(db, "users", user!.id);
+      await updateDoc(userDocRef, {
+        tasks: arrayUnion(newTask),
+      });
+
+      addTask(newTask);
+
+      console.log("Task added to user's tasks array");
+      Alert.alert("Success", "Task successfully created");
+    } catch (error) {
+      console.error("Error adding task: ", error);
+      Alert.alert("Error", "Failed to create task");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -47,7 +97,7 @@ export default function TaskScreen() {
                 fontFamily: "poppinsbold",
               }}
             >
-              My tasks
+              My Tasks
             </Text>
           ),
           headerRight: () => (
@@ -98,24 +148,119 @@ export default function TaskScreen() {
                   New Task
                 </Text>
               </NativeView>
-              <NativeView style={{}}>
+              <NativeView style={{ padding: 10 }}>
                 <KeyboardAvoidingView
                   behavior={Platform.OS === "ios" ? "padding" : "height"}
                 >
-                  <TextInput
-                    placeholderTextColor="#000"
-                    placeholder="Title"
-                    style={{
-                      borderWidth: StyleSheet.hairlineWidth,
-                      borderColor: "#000",
-                      borderRadius: 10,
-                      fontFamily: "poppinsbold",
-                      fontSize: 18,
-                      padding: 10,
-                    }}
-                    onPress={() => handleSnapPress(1)}
-                  ></TextInput>
+                  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <NativeView
+                      style={{
+                        marginVertical: 10,
+                        width: "100%",
+                      }}
+                    >
+                      <NativeView
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          position: "relative",
+                          backgroundColor: "#848080",
+                          borderRadius: 10,
+                          padding: 5,
+                          borderColor: "#f5f5f5",
+                          borderWidth: StyleSheet.hairlineWidth,
+                        }}
+                      >
+                        <Feather
+                          style={{ marginLeft: 4 }}
+                          name="feather"
+                          size={24}
+                          color={Colors.light.secondary}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          value={todo.title}
+                          autoCapitalize="none"
+                          lightColor={Colors.light.text}
+                          darkColor={Colors.dark.text}
+                          placeholder="Task Title"
+                          onChangeText={(value) =>
+                            setTodo({ ...todo, title: value })
+                          }
+                        />
+                      </NativeView>
+                    </NativeView>
+                  </TouchableWithoutFeedback>
                 </KeyboardAvoidingView>
+                <KeyboardAvoidingView
+                  behavior={Platform.OS === "ios" ? "padding" : "height"}
+                >
+                  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <NativeView
+                      style={{
+                        marginVertical: 10,
+                        width: "100%",
+                      }}
+                    >
+                      <NativeView
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "flex-start",
+                          alignItems: "center",
+                          position: "relative",
+                          backgroundColor: "#848080",
+                          borderRadius: 10,
+                          padding: 5,
+                          borderColor: "#f5f5f5",
+                          borderWidth: StyleSheet.hairlineWidth,
+                        }}
+                      >
+                        <Feather
+                          style={{ marginLeft: 4 }}
+                          name="hash"
+                          size={24}
+                          color={Colors.light.secondary}
+                        />
+                        <TextInput
+                          style={styles.input}
+                          value={todo.description}
+                          autoCapitalize="none"
+                          lightColor={Colors.light.text}
+                          darkColor={Colors.dark.text}
+                          placeholder="Task Description"
+                          onChangeText={(value) =>
+                            setTodo({ ...todo, description: value })
+                          }
+                        />
+                      </NativeView>
+                    </NativeView>
+                  </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
+                <TouchableOpacity
+                  disabled={loading}
+                  onPress={() =>
+                    handleTaskCreation(todo.title, todo.description)
+                  }
+                  style={[
+                    {
+                      backgroundColor: loading
+                        ? "#963c34"
+                        : Colors.light.secondary,
+                    },
+                    styles.signinwrapper,
+                  ]}
+                >
+                  <Feather
+                    name="feather"
+                    size={20}
+                    color={Colors.light.primary}
+                  />
+                  <Text style={{}}> Create</Text>
+                  {loading && <ActivityIndicator />}
+                </TouchableOpacity>
               </NativeView>
             </NativeView>
           </BottomSheetView>
@@ -143,5 +288,23 @@ const styles = StyleSheet.create({
     marginVertical: 30,
     height: 1,
     width: "80%",
+  },
+  input: {
+    borderRadius: 50,
+    padding: 10,
+    flex: 1,
+    textAlign: "left",
+  },
+  signinwrapper: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 30,
+    width: "100%",
+    padding: 15,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
   },
 });

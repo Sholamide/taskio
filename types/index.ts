@@ -1,11 +1,11 @@
-type featuredTasks = {
+type Task = {
     id: string,
-    categoryName: string,
-    name: string,
+    title: string,
     description: string,
-    userImageURL: string
+    createdAt: Date
 }
-type TaskType = {
+
+type Project = {
     name: string,
     description: string,
     defaultImageUrl: string,
@@ -20,6 +20,12 @@ type taskCategory = {
 }
 
 type User = {
-    clerkUserId: string,
-    email: string
+    firstname?: string,
+    lastname?: string,
+    username?: string,
+    email?: string,
+    image?: string,
+    clerkUserId?: string,
+    projects?: Project[],
+    tasks?: Task[]
 }
