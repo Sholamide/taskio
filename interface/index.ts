@@ -4,11 +4,12 @@ export interface TokenCache {
   clearToken?: (key: string) => void
 }
 
-export interface useStoreInterface {
+export interface useUserStoreInterface {
   activeUser: User;
-  featuredtasks: featuredTasks[];
-  categories: taskCategory[];
+  addTask:(task:Task)=>void;
+  // setUserTasks: (tasks: Task[]) => void;
+  // userProjects: Project[];
+  // setUserProjects: (projects: Project[]) => void;
+  // featuredtasks: Task[];
   setActiveUser: (user: User) => void;
-  setFeaturedTasks: (featuredTasks: featuredTasks[]) => void;
-  setCategories: (taskCategories: taskCategory[]) => void;
 } 

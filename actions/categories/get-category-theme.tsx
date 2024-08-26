@@ -1,4 +1,4 @@
-import useStore from "@/store/store";
+import useStore from "@/store/user-store";
 
 export const getCategoryTheme = (categoryName: string) => {
   const { categories } = useStore();

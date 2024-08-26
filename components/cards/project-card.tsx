@@ -3,7 +3,7 @@ import { TouchableOpacity, View, Text } from "../Themed";
 import Colors from "@/constants/Colors";
 import { router } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
-import useStore from "@/store/store";
+import useStore from "@/store/user-store";
 import { Entypo } from "@expo/vector-icons";
 
 export default function ProjectCard({ task }: { task: featuredTasks }) {

@@ -1,10 +1,4 @@
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TouchableWithoutFeedback,
-} from "react-native";
+import { Image, ScrollView, StyleSheet } from "react-native";
 import { Text, TouchableOpacity, View } from "@/components/Themed";
 import { Stack, useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
@@ -15,6 +9,13 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useAuth();
+
+
+  const handleSignOut = async()=>{
+    await signOut();
+
+    router.replace("/(auth)/sign-in")
+  }
 
   return (
     <View style={styles.container}>
@@ -198,7 +199,7 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => signOut({ redirectUrl: "/(auth)sign-up" })}
+            onPress={handleSignOut}
           >
             <View
               style={{

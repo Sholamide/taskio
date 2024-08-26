@@ -4,13 +4,13 @@ import * as WebBrowser from "expo-web-browser";
 import { useSignUp } from "@clerk/clerk-expo";
 import Colors from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
+import { doc, setDoc } from "firebase/firestore";
 import {
   ActivityIndicator,
   Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
@@ -18,6 +18,8 @@ import {
 import { Text, TextInput, TouchableOpacity, View } from "@/components/Themed";
 import { ReactNativeModal } from "react-native-modal";
 import GoogleAuth from "@/components/google-auth";
+import { db } from "@/config/firebase/firebase-config";
+import useStore from "@/store/user-store";
 
 const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -36,13 +38,12 @@ export default function SignUpScreen() {
   useWarmUpBrowser();
 
   const { isLoaded, signUp, setActive } = useSignUp();
-  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
-
   const router = useRouter();
+  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
+  const { setActiveUser } = useStore();
   const [loading, setLoading] = React.useState(false);
-  const [pendingVerification, setPendingVerification] = React.useState(false);
-  const [code, setCode] = React.useState("");
 
+  //sign up form values
   const [signUpForm, setSignUpForm] = React.useState({
     username: "",
     emailAddress: "",
@@ -50,6 +51,7 @@ export default function SignUpScreen() {
     confirmPassword: "",
   });
 
+  //verification form values
   const [verification, setVerification] = React.useState({
     state: "default",
     error: "",
@@ -58,6 +60,7 @@ export default function SignUpScreen() {
 
   const onSignUpPress = async () => {
     setLoading(true);
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidEmail = emailRegex.test(signUpForm.emailAddress);
 
@@ -71,11 +74,13 @@ export default function SignUpScreen() {
       setLoading(false);
       return;
     }
+
     if (signUpForm.username == "") {
       Alert.alert("Error", "Username required");
       setLoading(false);
       return;
     }
+
     if (!isValidEmail) {
       Alert.alert("Error", "Invalid email");
       setLoading(false);
@@ -90,7 +95,7 @@ export default function SignUpScreen() {
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setPendingVerification(true);
+
       setLoading(false);
       setVerification({
         ...verification,
@@ -99,7 +104,6 @@ export default function SignUpScreen() {
     } catch (err: any) {
       setLoading(false);
       Alert.alert("Error", err.errors[0].message);
-      // setSigninErrorMessage(err.errors[0].message);
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
       // console.error(JSON.stringify(err, null, 2));
@@ -116,27 +120,32 @@ export default function SignUpScreen() {
 
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code,
+        code: verification.code,
       });
 
       if (completeSignUp.status === "complete") {
         await setActive({ session: completeSignUp.createdSessionId });
-
-        router.replace("/(home)/");
         setLoading(false);
-        // Alert.alert('Success', 'Account verified', [
-        //   {
-        //     text: 'Go home',
-        //     onPress: () =>router.push("/(home)/"),
-        //   },
-        // ]);
-      } else {
+
         setVerification({
           ...verification,
-          error: "Verification failed. Please try again.",
-          state: "failed",
+          state: "success",
         });
-        setLoading(false);
+
+        // generate user data on firebase
+        const userRef = doc(db, "users", completeSignUp.createdUserId!);
+
+        const newUserData = {
+          username: signUpForm.username,
+          clerkUserId: completeSignUp.createdUserId!,
+          email: signUpForm.emailAddress,
+          image:"",
+          tasks: [],
+          projects: [],
+        };
+
+        await setDoc(userRef, newUserData);
+        setActiveUser(newUserData);
       }
     } catch (err: any) {
       setLoading(false);
@@ -145,7 +154,7 @@ export default function SignUpScreen() {
       setVerification({
         ...verification,
         error: "Verification failed. Please try again.",
-        state: "failed",
+        state: "pending",
       });
     }
   };
@@ -354,6 +363,7 @@ export default function SignUpScreen() {
                     textContentType="password"
                     value={signUpForm.password}
                     autoCapitalize="none"
+                    secureTextEntry={true}
                     lightColor={Colors.light.text}
                     darkColor={Colors.dark.text}
                     placeholder="Enter password"
@@ -408,6 +418,7 @@ export default function SignUpScreen() {
                     textContentType="password"
                     value={signUpForm.confirmPassword}
                     autoCapitalize="none"
+                    secureTextEntry={true}
                     lightColor={Colors.light.text}
                     darkColor={Colors.dark.text}
                     placeholder="Confirm password"
@@ -546,7 +557,7 @@ export default function SignUpScreen() {
           )}
           <TouchableOpacity
             disabled={loading}
-            onPress={onSignUpPress}
+            onPress={onPressVerify}
             style={[
               {
                 backgroundColor: loading ? "#963c34" : Colors.light.secondary,
@@ -559,21 +570,62 @@ export default function SignUpScreen() {
           </TouchableOpacity>
         </View>
       </ReactNativeModal>
-      {pendingVerification && (
-        <View style={styles.container}>
-          <View style={styles.wrapper}>
-            <TextInput
-              value={code}
-              placeholder="Enter verification code..."
-              style={styles.input}
-              onChangeText={(code) => setCode(code)}
-            />
-            <Pressable style={styles.verifyButton} onPress={onPressVerify}>
-              <Text style={styles.verifytext}>Verify email</Text>
-            </Pressable>
-          </View>
+      <ReactNativeModal isVisible={showSuccessModal}>
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingVertical: 10,
+            height: 300,
+            gap: 10,
+          }}
+        >
+          <TouchableOpacity
+            style={{
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 10,
+              backgroundColor: "#fff",
+              alignSelf: "center",
+              borderRadius: 50,
+            }}
+          >
+            <Feather name="check" size={24} color={Colors.light.primary} />
+          </TouchableOpacity>
+          <Text
+            style={{
+              textAlign: "center",
+              fontFamily: "poppinsbold",
+              color: Colors.light.primary,
+            }}
+          >
+            Verified
+          </Text>
+          <Text
+            style={{
+              textAlign: "center",
+              fontFamily: "poppinsregular",
+            }}
+          >
+            You have successfully verified your account.
+          </Text>
+          <TouchableOpacity
+            disabled={loading}
+            onPress={() => {
+              router.push("/(home)/home");
+              setShowSuccessModal(false);
+            }}
+            style={[
+              {
+                backgroundColor: Colors.light.primary,
+              },
+              styles.signupButtonWrapper,
+            ]}
+          >
+            <Text style={styles.signupButton}> GO HOME</Text>
+            {loading && <ActivityIndicator />}
+          </TouchableOpacity>
         </View>
-      )}
+      </ReactNativeModal>
     </ScrollView>
   );
 }

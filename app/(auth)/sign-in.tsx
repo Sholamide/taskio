@@ -21,6 +21,9 @@ import Colors from "../../constants/Colors";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Feather } from "@expo/vector-icons";
 import GoogleAuth from "@/components/google-auth";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { db } from "@/config/firebase/firebase-config";
+import useUserStore from "@/store/user-store";
 
 const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -37,13 +40,16 @@ const SignInScreen = () => {
   useWarmUpBrowser();
 
   const { signIn, setActive, isLoaded } = useSignIn();
-  const router = useRouter();
+  const { setActiveUser } = useUserStore();
 
+  const router = useRouter();
+  const {} = useUserStore();
   const [loading, setLoading] = React.useState(false);
   const [signInForm, setSignInForm] = React.useState({
     emailAddress: "",
     password: "",
   });
+
   const onSignInPress = React.useCallback(async () => {
     setLoading(true);
     if (!isLoaded) {
@@ -58,7 +64,10 @@ const SignInScreen = () => {
 
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
+
+        console.log("sessionid", signInAttempt.createdSessionId);
+
+        router.replace("/(home)/home");
         setLoading(false);
       } else {
         // See https://clerk.com/docs/custom-flows/error-handling

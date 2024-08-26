@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
-import * as SecureStore from "expo-secure-store";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import {
   DarkTheme,
@@ -16,6 +15,7 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/components/useColorScheme";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { FadeOut } from "react-native-reanimated";
+import { tokenCache } from "@/lib/auth";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -81,30 +81,7 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
-  const tokenCache = {
-    async getToken(key: string) {
-      try {
-        const item = await SecureStore.getItemAsync(key);
-        if (item) {
-          console.log(`${key} was used 🔐 \n`);
-        } else {
-          console.log("No values stored under key: " + key);
-        }
-        return item;
-      } catch (error) {
-        console.error("SecureStore get item error: ", error);
-        await SecureStore.deleteItemAsync(key);
-        return null;
-      }
-    },
-    async saveToken(key: string, value: string) {
-      try {
-        return SecureStore.setItemAsync(key, value);
-      } catch (err) {
-        return;
-      }
-    },
-  };
+  
 
   if (!publishableKey) {
     throw new Error(
@@ -114,11 +91,13 @@ function RootLayoutNav() {
 
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
+      <ClerkLoaded>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
           <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(home)" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen
@@ -129,6 +108,7 @@ function RootLayoutNav() {
           </Stack>
         </ThemeProvider>
       </GestureHandlerRootView>
+      </ClerkLoaded>
     </ClerkProvider>
   );
 }
