@@ -10,12 +10,11 @@ export default function ProfileScreen() {
   const { user } = useUser();
   const { signOut } = useAuth();
 
-
-  const handleSignOut = async()=>{
+  const handleSignOut = async () => {
     await signOut();
 
-    router.replace("/(auth)/sign-in")
-  }
+    router.replace("/(auth)/sign-in");
+  };
 
   return (
     <View style={styles.container}>
@@ -29,7 +28,7 @@ export default function ProfileScreen() {
           <Text style={styles.headerTopText}>My Account,</Text>
           <Text style={styles.headerBottomText}>{user?.username}</Text>
         </View>
-        <TouchableOpacity onPress={() => router.push("/(home)/account")}>
+        <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/account")}>
           <Image style={styles.image} src={user?.imageUrl} />
         </TouchableOpacity>
       </View>
@@ -198,9 +197,7 @@ export default function ProfileScreen() {
               </View>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleSignOut}
-          >
+          <TouchableOpacity onPress={handleSignOut}>
             <View
               style={{
                 display: "flex",

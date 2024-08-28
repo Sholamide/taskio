@@ -1,25 +1,35 @@
+import { useState } from "react";
 import { Image, StyleSheet } from "react-native";
 import { Text, TouchableOpacity, View } from "../Themed";
 import { useUser } from "@clerk/clerk-expo";
 import { Entypo } from "@expo/vector-icons";
 import Colors from "@/constants/Colors";
+import useUserStore from "@/store/user-store";
+import { router } from "expo-router";
 
-export default function TaskCard({ task }: { task?: TaskType }) {
-  const { user } = useUser();
-
+export default function TaskCard({ task }: { task: Task }) {
   return (
     <TouchableOpacity
+      onPress={() => {
+        router.push({
+          pathname: "/(root)/task-details",
+          params: task,
+        });
+      }}
       style={{
         width: "100%",
-        height: 135,
-        padding: 10,
+        height: "auto",
         marginVertical: 5,
+        padding: 5,
         borderColor: "#686565",
         borderWidth: StyleSheet.hairlineWidth,
         borderRadius: 8,
       }}
     >
-      <View
+      <Text>{task?.title}</Text>
+      <Text>{task?.description}</Text>
+
+      {/* <View
         style={{
           display: "flex",
           height: "100%",
@@ -132,7 +142,7 @@ export default function TaskCard({ task }: { task?: TaskType }) {
             </View>
           </TouchableOpacity>
         </View>
-      </View>
+      </View> */}
     </TouchableOpacity>
   );
 }

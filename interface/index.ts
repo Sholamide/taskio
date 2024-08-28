@@ -6,10 +6,18 @@ export interface TokenCache {
 
 export interface useUserStoreInterface {
   activeUser: User;
-  addTask:(task:Task)=>void;
-  // setUserTasks: (tasks: Task[]) => void;
-  // userProjects: Project[];
-  // setUserProjects: (projects: Project[]) => void;
-  // featuredtasks: Task[];
+  categories: any,
+  setUserTasks: (tasks: Task[]) => void;
+  setCategories: (categories: any) => void;
+  addTask: (task: Task) => void;
+  deleteTask: (id: String) => void;
+  // updateTask: (id: String) => void;
   setActiveUser: (user: User) => void;
-} 
+}
+
+export interface Task {
+  id: string,
+  title: string,
+  description: string,
+  createdAt: any
+}
