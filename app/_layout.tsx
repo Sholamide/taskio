@@ -81,8 +81,6 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
-  
-
   if (!publishableKey) {
     throw new Error(
       "Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env"
@@ -92,22 +90,22 @@ function RootLayoutNav() {
   return (
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <ClerkLoaded>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(home)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="(onboarding)"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-          </Stack>
-        </ThemeProvider>
-      </GestureHandlerRootView>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+          >
+            <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(root)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="(onboarding)"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+            </Stack>
+          </ThemeProvider>
+        </GestureHandlerRootView>
       </ClerkLoaded>
     </ClerkProvider>
   );

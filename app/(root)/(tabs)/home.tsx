@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import { Text, TextInput, TouchableOpacity, View } from "@/components/Themed";
+import { Text, TouchableOpacity, View } from "@/components/Themed";
 import { Stack, useRouter } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import React, { useEffect, useState } from "react";
@@ -32,7 +32,6 @@ export default function HomeScreen() {
       const activeUserSnap = await getDoc(activeUserRef);
 
       if (activeUserSnap.exists()) {
-        console.log("Document data:", activeUserSnap.data());
         setActiveUser(activeUserSnap.data());
       } else {
         // docSnap.data() will be undefined in this case
@@ -41,7 +40,6 @@ export default function HomeScreen() {
     } catch (error) {
     } finally {
       setLoading(false);
-      console.log("active user", activeUser);
     }
     // user projects
   };
@@ -69,10 +67,10 @@ export default function HomeScreen() {
               Task smarter, not harder ✨
             </Text>
           </View>
-          <TouchableOpacity onPress={() => router.push("/(home)/account")}>
+          <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/account")}>
             <Image
               style={styles.image}
-              src={user?.imageUrl || require("../../assets/images/icon.png")}
+              src={user?.imageUrl || require("../../../assets/images/icon.png")}
             />
           </TouchableOpacity>
         </View>
@@ -227,7 +225,7 @@ export default function HomeScreen() {
                 }}
               >
                 <TouchableOpacity
-                  onPress={() => router.push("/(home)/task")}
+                  onPress={() => router.push("/(root)/(tabs)/me")}
                   style={{
                     height: 300,
                     width: 300,
@@ -252,10 +250,10 @@ export default function HomeScreen() {
               </View>
             ) : (
               <View>
-                {[1, 2, 3].map((index: number) => (
-                  <TaskCard key={index} />
-                ))}
-                {/* <TaskCard /> */}
+                {activeUser.tasks &&
+                  activeUser.tasks.map((task: Task, index: number) => (
+                    <TaskCard task={task} key={index} />
+                  ))}
                 <View
                   style={{
                     display: "flex",
@@ -265,7 +263,7 @@ export default function HomeScreen() {
                   }}
                 >
                   <TouchableOpacity
-                    onPress={() => router.push("/(home)/task")}
+                    onPress={() => router.push("/(root)/(tabs)/me")}
                     style={{
                       backgroundColor: Colors.light.secondary,
                       paddingHorizontal: 50,

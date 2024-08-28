@@ -2,10 +2,11 @@ type Task = {
     id: string,
     title: string,
     description: string,
-    createdAt: Date
+    createdAt: any
 }
 
 type Project = {
+    id: string,
     name: string,
     description: string,
     defaultImageUrl: string,

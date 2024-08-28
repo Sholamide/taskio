@@ -139,7 +139,7 @@ export default function SignUpScreen() {
           username: signUpForm.username,
           clerkUserId: completeSignUp.createdUserId!,
           email: signUpForm.emailAddress,
-          image:"",
+          image: "",
           tasks: [],
           projects: [],
         };
