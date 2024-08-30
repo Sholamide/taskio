@@ -1,31 +1,10 @@
-import Colors from "@/constants/Colors";
-import { Entypo } from "@expo/vector-icons";
-import { router, Stack } from "expo-router";
-import { TouchableOpacity } from "react-native";
+import { Stack } from "expo-router";
 
-const Layout = () => {
+export const RootLayout = () => {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      {/* <Stack.Screen
-        name="task-details/[Id]"
-        options={{
-          headerShown: true,
-          headerTitle: "",
-          headerBackTitleVisible: false,
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <Entypo
-                name="chevron-with-circle-left"
-                size={24}
-                color={Colors.light.primary}
-              />
-            </TouchableOpacity>
-          ),
-        }}
-      /> */}
+      <Stack.Screen name="task-details" options={{ headerShown: false }} />
     </Stack>
   );
 };
-
-export default Layout;

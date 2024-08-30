@@ -1,4 +1,3 @@
-
 // Application
 // Headers and Navigation Bar: Teal
 // Primary Buttons and Links: Teal
@@ -9,18 +8,17 @@
 // Success Messages/Indicators: Emerald Green
 // Error Messages/Indicators: Crimson Red
 
-
-const tintColor = '#2f95dc';
+const tintColor = "#2f95dc";
 
 export default {
   light: {
     // for primary buttons, headers, and active tab icons
-    primary: '#008080',
+    primary: "#008080",
     // for secondary buttons, highlights, and inactive tab icons
     secondary: "#FF6F61",
 
     // for the main background
-    background: '#F5F5F5',
+    background: "#F5F5F5",
 
     // for important highlights and notifications
     accent: "#FFD700",
@@ -42,18 +40,18 @@ export default {
 
     // others
     tint: tintColor,
-    tabIconDefault: '#ccc',
+    tabIconDefault: "#ccc",
     tabIconSelected: tintColor,
   },
 
   dark: {
     // for primary buttons, headers, and active tab icons
-    primary: '#20B2AA',
+    primary: "#20B2AA",
     // for secondary buttons, highlights, and inactive tab icons
     secondary: "#FF7F50",
 
     // for the main background
-    background: '#000000',
+    background: "#000000",
 
     // for important highlights and notifications
     accent: "#FFD700",
@@ -75,7 +73,7 @@ export default {
 
     // others
     tint: tintColor,
-    tabIconDefault: '#ccc',
+    tabIconDefault: "#ccc",
     tabIconSelected: tintColor,
   },
 };

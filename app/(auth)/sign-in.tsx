@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useRouter } from "expo-router";
+import { Link, router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import {
   SafeAreaView,
@@ -7,8 +7,6 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "../../components/Themed";
-import {
   ActivityIndicator,
   Alert,
   Keyboard,
@@ -21,9 +19,6 @@ import Colors from "../../constants/Colors";
 import { useSignIn } from "@clerk/clerk-expo";
 import { Feather } from "@expo/vector-icons";
 import GoogleAuth from "@/components/google-auth";
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
-import { db } from "@/config/firebase/firebase-config";
-import useUserStore from "@/store/user-store";
 
 const useWarmUpBrowser = () => {
   React.useEffect(() => {
@@ -40,10 +35,7 @@ const SignInScreen = () => {
   useWarmUpBrowser();
 
   const { signIn, setActive, isLoaded } = useSignIn();
-  const { setActiveUser } = useUserStore();
 
-  const router = useRouter();
-  const {} = useUserStore();
   const [loading, setLoading] = React.useState(false);
   const [signInForm, setSignInForm] = React.useState({
     emailAddress: "",
@@ -67,7 +59,7 @@ const SignInScreen = () => {
 
         console.log("sessionid", signInAttempt.createdSessionId);
 
-        router.replace("/(home)/home");
+        router.replace("/(root)/(tabs)/home");
         setLoading(false);
       } else {
         // See https://clerk.com/docs/custom-flows/error-handling
@@ -79,33 +71,21 @@ const SignInScreen = () => {
       Alert.alert("Error", err.errors[0].longMessage);
       setLoading(false);
     }
-  }, [isLoaded, signInForm.emailAddress, signInForm.password]);
+  }, [
+    isLoaded,
+    setActive,
+    signIn,
+    signInForm.emailAddress,
+    signInForm.password,
+  ]);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.wrapper}>
-        <Text
-          lightColor={Colors.light.primary}
-          darkColor={Colors.dark.primary}
-          style={styles.headerText}
-        >
-          AIKI
-        </Text>
+        <Text style={styles.headerText}>AIKI</Text>
         <View style={styles.introWrapper}>
-          <Text
-            lightColor={Colors.light.secondary}
-            darkColor={Colors.dark.secondary}
-            style={styles.introHeader}
-          >
-            Welcome
-          </Text>
-          <Text
-            lightColor={Colors.light.text}
-            darkColor={Colors.dark.text}
-            style={styles.introSubtext}
-          >
-            Sign in to continue!
-          </Text>
+          <Text style={styles.introHeader}>Welcome</Text>
+          <Text style={styles.introSubtext}>Sign in to continue!</Text>
         </View>
         <View style={{ alignItems: "center" }}>
           <View
@@ -124,12 +104,7 @@ const SignInScreen = () => {
                 borderColor: "#5a5757",
               }}
             />
-            <Text
-              lightColor={Colors.light.primary}
-              darkColor={Colors.dark.primary}
-            >
-              or
-            </Text>
+            <Text>or</Text>
             <View
               style={{
                 borderWidth: StyleSheet.hairlineWidth,
@@ -184,8 +159,6 @@ const SignInScreen = () => {
                     textContentType="emailAddress"
                     value={signInForm.emailAddress}
                     autoCapitalize="none"
-                    lightColor={Colors.light.text}
-                    darkColor={Colors.dark.text}
                     placeholder="Enter email"
                     onChangeText={(value) =>
                       setSignInForm({ ...signInForm, emailAddress: value })
@@ -239,8 +212,6 @@ const SignInScreen = () => {
                     secureTextEntry={true}
                     value={signInForm.password}
                     autoCapitalize="none"
-                    lightColor={Colors.light.text}
-                    darkColor={Colors.dark.text}
                     placeholder="Enter password"
                     onChangeText={(value) =>
                       setSignInForm({ ...signInForm, password: value })
@@ -256,13 +227,7 @@ const SignInScreen = () => {
             }}
             style={styles.forgotPasswordPressable}
           >
-            <Text
-              lightColor={Colors.light.primary}
-              darkColor={Colors.dark.primary}
-              style={styles.forgotPassword}
-            >
-              Forgot Password?
-            </Text>
+            <Text style={styles.forgotPassword}>Forgot Password?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -289,12 +254,7 @@ const SignInScreen = () => {
             href={"/(auth)/sign-up"}
           >
             Don't have an account?,&nbsp;
-            <Text
-              lightColor={Colors.light.primary}
-              darkColor={Colors.dark.primary}
-            >
-              Sign up!
-            </Text>
+            <Text>Sign up!</Text>
           </Link>
         </View>
       </View>
