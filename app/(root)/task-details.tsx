@@ -12,12 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import React, { useEffect } from "react";
-import {
-  router,
-  Stack,
-  useLocalSearchParams,
-  useNavigation,
-} from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { Entypo, Feather } from "@expo/vector-icons";
 import Colors from "@/constants/Colors";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
@@ -64,7 +59,7 @@ export default function TaskDetails() {
         </TouchableOpacity>
       ),
     });
-  }, []);
+  }, [navigation]);
 
   //task form values
   const [todo, setTodo] = React.useState<Todo>({
@@ -128,7 +123,7 @@ export default function TaskDetails() {
 
       // Map through the tasks, updating the one with the matching ID
       const updatedTasks = userData?.tasks.map((task: Task) =>
-        task.id === id ? { ...task, ...updatedTaskData } : task
+        task.id === id ? { ...task, ...updatedTaskData } : task,
       );
 
       // Update the document with the new tasks array
@@ -138,10 +133,15 @@ export default function TaskDetails() {
 
       setUserTasks(updatedTasks);
     } catch (error) {
+      console.log(error);
     } finally {
     }
     setUpdatingLoading(false);
-    isEditable ? setIsEditable(true) : setIsEditable(false);
+    if (isEditable) {
+      setIsEditable(true);
+    } else {
+      setIsEditable(false);
+    }
     Alert.alert("Success", "Task successfully deleted", [
       { text: "OK", onPress: () => router.back() },
     ]);
@@ -164,7 +164,7 @@ export default function TaskDetails() {
 
       // Filter out the task with the matching ID
       const updatedTasks = userData?.tasks.filter(
-        (task: Task) => task.id !== id
+        (task: Task) => task.id !== id,
       );
 
       // Update the document with the new tasks array

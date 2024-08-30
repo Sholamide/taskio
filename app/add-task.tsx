@@ -22,7 +22,7 @@ import useUserStore from "@/store/user-store";
 
 export default function AddTask() {
   const { user } = useUser();
-  const { addTask, activeUser } = useUserStore();
+  const { addTask } = useUserStore();
 
   const [loading, setLoading] = React.useState(false);
 
@@ -46,7 +46,7 @@ export default function AddTask() {
       setLoading(false);
       return;
     }
-    
+
     const newTask = {
       // Generate a unique ID
       id: Date.now().toString(),

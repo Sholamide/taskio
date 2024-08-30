@@ -1,8 +1,7 @@
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import React from "react";
 import Colors from "@/constants/Colors";
 import { Entypo } from "@expo/vector-icons";
-import { TouchableOpacity } from "./Themed";
 
 const FAB = ({
   title,
@@ -33,7 +32,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 25,
     right: 15,
-    gap:1,
+    gap: 1,
     backgroundColor: Colors.light.primary,
     padding: 20,
   },

@@ -1,6 +1,5 @@
-import { SafeAreaView, Text, View } from "../../components/Themed";
 import React, { useEffect, useState } from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { SafeAreaView, Text, View, Pressable, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { onboardingSteps } from "../../constants";
@@ -80,12 +79,12 @@ export default function OnboardingScreen() {
   //gesture handler for handling swiping
   const swipes = Gesture.Simultaneous(
     Gesture.Fling().runOnJS(true).direction(Directions.RIGHT).onEnd(onBack),
-    Gesture.Fling().runOnJS(true).direction(Directions.LEFT).onEnd(onContinue)
+    Gesture.Fling().runOnJS(true).direction(Directions.LEFT).onEnd(onContinue),
   );
 
   //check if it's first launch, if not, redirect to auth group
   if (!isFirstLaunch) {
-    return <Redirect href="/(home)/" />;
+    return <Redirect href="/(root)/(tabs)/home" />;
   }
 
   //onboarding screen
@@ -108,7 +107,7 @@ export default function OnboardingScreen() {
                   styles.indicator,
                   {
                     backgroundColor:
-                      index == screenIndex
+                      index === screenIndex
                         ? Colors.light.primary
                         : Colors.light.text,
                   },
@@ -147,13 +146,7 @@ export default function OnboardingScreen() {
                 .restDisplacementThreshold(0.1)
                 .restSpeedThreshold(5)}
             >
-              <Text
-                lightColor={Colors.light.primary}
-                darkColor={Colors.light.primary}
-                style={styles.contentTitle}
-              >
-                {data.title}
-              </Text>
+              <Text style={styles.contentTitle}>{data.title}</Text>
             </Animated.View>
 
             <Animated.View
@@ -172,13 +165,7 @@ export default function OnboardingScreen() {
                 .restDisplacementThreshold(0.1)
                 .restSpeedThreshold(5)}
             >
-              <Text
-                lightColor={Colors.light.lightGray}
-                darkColor={Colors.light.lightGray}
-                style={styles.contentSubtitle}
-              >
-                {data.subtitle}
-              </Text>
+              <Text style={styles.contentSubtitle}>{data.subtitle}</Text>
             </Animated.View>
             <Animated.View
               style={styles.buttonsRow}
@@ -198,13 +185,7 @@ export default function OnboardingScreen() {
                 .restSpeedThreshold(5)}
             >
               <Pressable onPress={endOnboarding}>
-                <Text
-                  lightColor={Colors.dark.background}
-                  darkColor={Colors.light.background}
-                  style={styles.buttonText}
-                >
-                  Skip
-                </Text>
+                <Text style={styles.buttonText}>Skip</Text>
               </Pressable>
 
               <Pressable
@@ -219,11 +200,7 @@ export default function OnboardingScreen() {
                   styles.button,
                 ]}
               >
-                <Text
-                  lightColor={Colors.light.background}
-                  darkColor={Colors.dark.background}
-                  style={styles.buttonText}
-                >
+                <Text style={styles.buttonText}>
                   {screenIndex === onboardingSteps.length - 1
                     ? "Get Started"
                     : "Continue"}

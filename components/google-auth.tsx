@@ -1,18 +1,16 @@
 import { useOAuth } from "@clerk/clerk-expo";
 import React from "react";
 import * as Linking from "expo-linking";
-import { Text, TouchableOpacity } from "./Themed";
-import { Image, StyleSheet } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 const GoogleAuth = ({ title }: { title: string }) => {
   const { startOAuthFlow } = useOAuth({ strategy: "oauth_google" });
 
   const handleOAuth = React.useCallback(async () => {
     try {
-      const { createdSessionId, signIn, signUp, setActive } =
-        await startOAuthFlow({
-          redirectUrl: Linking.createURL("/dashboard", { scheme: "myapp" }),
-        });
+      const { createdSessionId, setActive } = await startOAuthFlow({
+        redirectUrl: Linking.createURL("/dashboard", { scheme: "myapp" }),
+      });
 
       if (createdSessionId) {
         setActive!({ session: createdSessionId });
@@ -22,7 +20,7 @@ const GoogleAuth = ({ title }: { title: string }) => {
     } catch (err) {
       console.error("OAuth error", err);
     }
-  }, []);
+  }, [startOAuthFlow]);
 
   return (
     <TouchableOpacity onPress={handleOAuth} style={styles.container}>

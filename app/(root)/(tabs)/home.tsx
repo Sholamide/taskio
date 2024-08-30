@@ -1,4 +1,7 @@
 import {
+  Text,
+  View,
+  TouchableOpacity,
   SafeAreaView,
   Image,
   ScrollView,
@@ -7,7 +10,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 
-import { Text, TouchableOpacity, View } from "@/components/Themed";
 import { Stack, useRouter } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
 import React, { useEffect, useState } from "react";
@@ -24,29 +26,29 @@ export default function HomeScreen() {
   const { activeUser, setActiveUser } = useUserStore();
   const [loading, setLoading] = useState(false);
 
-  const InitUser = async (userid: string) => {
-    setLoading(true);
-    // user
-    try {
-      const activeUserRef = doc(db, "users", userid);
-      const activeUserSnap = await getDoc(activeUserRef);
-
-      if (activeUserSnap.exists()) {
-        setActiveUser(activeUserSnap.data());
-      } else {
-        // docSnap.data() will be undefined in this case
-        Alert.alert("Error", "No user data found!");
-      }
-    } catch (error) {
-    } finally {
-      setLoading(false);
-    }
-    // user projects
-  };
-
   useEffect(() => {
+    const InitUser = async (userid: string) => {
+      setLoading(true);
+      // user
+      try {
+        const activeUserRef = doc(db, "users", userid);
+        const activeUserSnap = await getDoc(activeUserRef);
+
+        if (activeUserSnap.exists()) {
+          setActiveUser(activeUserSnap.data());
+        } else {
+          // docSnap.data() will be undefined in this case
+          Alert.alert("Error", "No user data found!");
+        }
+      } catch (error: any) {
+        console.log("error", error);
+      } finally {
+        setLoading(false);
+      }
+      // user projects
+    };
     InitUser(user?.id!);
-  }, [user]);
+  }, [setActiveUser, user]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,7 +69,9 @@ export default function HomeScreen() {
               Task smarter, not harder ✨
             </Text>
           </View>
-          <TouchableOpacity onPress={() => router.push("/(root)/(tabs)/account")}>
+          <TouchableOpacity
+            onPress={() => router.push("/(root)/(tabs)/account")}
+          >
             <Image
               style={styles.image}
               src={user?.imageUrl || require("../../../assets/images/icon.png")}

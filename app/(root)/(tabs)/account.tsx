@@ -1,5 +1,11 @@
-import { Image, ScrollView, StyleSheet } from "react-native";
-import { Text, TouchableOpacity, View } from "@/components/Themed";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import Colors from "@/constants/Colors";

@@ -14,8 +14,11 @@ import {
   ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Text, TextInput, TouchableOpacity, View } from "@/components/Themed";
 import { ReactNativeModal } from "react-native-modal";
 import GoogleAuth from "@/components/google-auth";
 import { db } from "@/config/firebase/firebase-config";
@@ -75,7 +78,7 @@ export default function SignUpScreen() {
       return;
     }
 
-    if (signUpForm.username == "") {
+    if (signUpForm.username === "") {
       Alert.alert("Error", "Username required");
       setLoading(false);
       return;
@@ -148,6 +151,7 @@ export default function SignUpScreen() {
         setActiveUser(newUserData);
       }
     } catch (err: any) {
+      console.log("error", err);
       setLoading(false);
       // See https://clerk.com/docs/custom-flows/error-handling
       // for more info on error handling
@@ -163,20 +167,8 @@ export default function SignUpScreen() {
     <ScrollView style={styles.container}>
       <View style={styles.wrapper}>
         <View style={styles.introWrapper}>
-          <Text
-            lightColor={Colors.light.secondary}
-            darkColor={Colors.dark.secondary}
-            style={styles.introHeader}
-          >
-            Create Account
-          </Text>
-          <Text
-            lightColor={Colors.light.text}
-            darkColor={Colors.dark.text}
-            style={styles.introSubtext}
-          >
-            Sign up to get started
-          </Text>
+          <Text style={styles.introHeader}>Create Account</Text>
+          <Text style={styles.introSubtext}>Sign up to get started</Text>
           <GoogleAuth title="Sign Up with Google" />
         </View>
         <View style={{ alignItems: "center" }}>
@@ -196,12 +188,7 @@ export default function SignUpScreen() {
                 borderColor: "#5a5757",
               }}
             />
-            <Text
-              lightColor={Colors.light.primary}
-              darkColor={Colors.dark.primary}
-            >
-              or
-            </Text>
+            <Text>or</Text>
             <View
               style={{
                 borderWidth: StyleSheet.hairlineWidth,
@@ -255,8 +242,6 @@ export default function SignUpScreen() {
                     textContentType="username"
                     value={signUpForm.username}
                     autoCapitalize="none"
-                    lightColor={Colors.light.text}
-                    darkColor={Colors.dark.text}
                     placeholder="Enter username"
                     onChangeText={(value) =>
                       setSignUpForm({ ...signUpForm, username: value })
@@ -309,8 +294,6 @@ export default function SignUpScreen() {
                     textContentType="emailAddress"
                     value={signUpForm.emailAddress}
                     autoCapitalize="none"
-                    lightColor={Colors.light.text}
-                    darkColor={Colors.dark.text}
                     placeholder="Enter email"
                     onChangeText={(value) =>
                       setSignUpForm({ ...signUpForm, emailAddress: value })
@@ -364,8 +347,6 @@ export default function SignUpScreen() {
                     value={signUpForm.password}
                     autoCapitalize="none"
                     secureTextEntry={true}
-                    lightColor={Colors.light.text}
-                    darkColor={Colors.dark.text}
                     placeholder="Enter password"
                     onChangeText={(value) =>
                       setSignUpForm({ ...signUpForm, password: value })
@@ -419,8 +400,6 @@ export default function SignUpScreen() {
                     value={signUpForm.confirmPassword}
                     autoCapitalize="none"
                     secureTextEntry={true}
-                    lightColor={Colors.light.text}
-                    darkColor={Colors.dark.text}
                     placeholder="Confirm password"
                     onChangeText={(value) =>
                       setSignUpForm({ ...signUpForm, confirmPassword: value })
@@ -454,12 +433,7 @@ export default function SignUpScreen() {
             href={"/(auth)"}
           >
             Already have an account?,&nbsp;
-            <Text
-              lightColor={Colors.light.primary}
-              darkColor={Colors.dark.primary}
-            >
-              Sign in!
-            </Text>
+            <Text>Sign in!</Text>
           </Link>
         </View>
       </View>
@@ -539,8 +513,6 @@ export default function SignUpScreen() {
                     style={styles.input}
                     textContentType="username"
                     value={verification.code}
-                    lightColor={Colors.light.text}
-                    darkColor={Colors.dark.text}
                     placeholder="12345"
                     onChangeText={(value) =>
                       setVerification({ ...verification, code: value })
@@ -611,7 +583,7 @@ export default function SignUpScreen() {
           <TouchableOpacity
             disabled={loading}
             onPress={() => {
-              router.push("/(home)/home");
+              router.push("/(root)/(tabs)/home");
               setShowSuccessModal(false);
             }}
             style={[
